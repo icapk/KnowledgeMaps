@@ -141,6 +141,14 @@
         <div class="nav-item" data-target="m9">
             <span class="icon">🗺</span> 9. 产业链全景态势展现
         </div>
+
+        <div class="nav-group">🤖 AI智能与报告中心</div>
+        <div class="nav-item" data-target="mAI">
+            <span class="icon">💬</span> AI智能报告生成
+        </div>
+        <div class="nav-item" data-target="mReport">
+            <span class="icon">📋</span> 报告工作台 <span id="pin-badge" style="background:var(--danger-color);color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;margin-left:auto;display:none;">0</span>
+        </div>
     </div>
 
     <!-- MAIN WORKSPACE -->
@@ -675,6 +683,66 @@
                 <div class="canvas-content"><div id="chart-m9" class="chart-wrapper"></div></div>
             </div>
         </div>
+
+        <!-- ============================================== -->
+        <!-- MODULE AI: AI Smart Report Generation -->
+        <!-- ============================================== -->
+        <div class="view-container" id="mAI">
+            <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; background:linear-gradient(135deg, #f5f7fa 0%, #e4ecf7 100%); padding:40px;">
+                <div style="font-size:48px; margin-bottom:20px;">🤖</div>
+                <h2 style="font-size:22px; color:var(--text-heading); margin-bottom:8px;">知识图谱 AI 智能报告引擎</h2>
+                <p style="color:var(--text-muted); margin-bottom:30px; max-width:500px; text-align:center; line-height:1.8;">用自然语言输入您想调查的对象，系统自动识别实体类型（学者/企业/产业链），调度全部相关模块进行深度挖掘，一键生成完备的结构化报告。</p>
+                <div style="display:flex; gap:10px; width:100%; max-width:600px; margin-bottom:25px;">
+                    <input type="text" class="form-input" id="ai-search-input" placeholder="例如：张维理 / 科大讯飞 / 新能源汽车产业链" style="flex:1; padding:14px 18px; font-size:15px; border-radius:8px; box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+                    <button class="btn btn-primary" style="padding:14px 28px; border-radius:8px; font-size:15px;" onclick="simulateAIReport()">🔍 深度挖掘</button>
+                </div>
+                <div style="display:flex; gap:15px; margin-bottom:30px;">
+                    <span class="tag" style="cursor:pointer; padding:6px 14px;" onclick="document.getElementById('ai-search-input').value='张维理 (清华大学)';">👤 示例：学者查询</span>
+                    <span class="tag" style="cursor:pointer; padding:6px 14px;" onclick="document.getElementById('ai-search-input').value='科大讯飞股份有限公司';">🏭 示例：企业查询</span>
+                    <span class="tag" style="cursor:pointer; padding:6px 14px;" onclick="document.getElementById('ai-search-input').value='第三代半导体材料';">🗺 示例：产业链查询</span>
+                </div>
+                <!-- AI Report Result Area (initially hidden) -->
+                <div id="ai-report-result" style="display:none; width:100%; max-width:750px; background:#fff; border-radius:12px; box-shadow:0 4px 25px rgba(0,0,0,0.1); padding:30px; text-align:left; max-height:50vh; overflow-y:auto;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                        <h3 style="color:var(--text-heading);" id="ai-report-title">📊 报告生成中...</h3>
+                        <button class="btn btn-primary" style="padding:6px 16px; font-size:13px;" onclick="simulateExport(this)">导出报告 (.pdf)</button>
+                    </div>
+                    <div id="ai-report-body" style="font-size:14px; line-height:2; color:var(--text-main);">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- MODULE REPORT: Report Workbench -->
+        <!-- ============================================== -->
+        <div class="view-container" id="mReport">
+            <div style="flex:1; display:flex; flex-direction:column; padding:25px; background:#f5f7fa; overflow-y:auto;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                    <div>
+                        <h2 style="font-size:20px; color:var(--text-heading); margin-bottom:5px;">📋 报告工作台</h2>
+                        <p style="color:var(--text-muted); font-size:13px;">汇总各模块的铉选结论，由 AI 自动整合生成综合报告</p>
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                        <button class="btn btn-outline" onclick="clearPinnedItems()">🗑 清空全部</button>
+                        <button class="btn btn-primary" onclick="simulateAISummary(this)">🤖 AI 整合生成报告</button>
+                    </div>
+                </div>
+                <div id="pinned-items-container" style="display:flex; flex-direction:column; gap:12px;">
+                    <div style="text-align:center; padding:60px 20px; color:var(--text-muted); font-size:14px;">
+                        暂无铉选内容。请在各分析模块中点击 <strong>"📌 铉选到报告"</strong> 按钮收集分析结论。
+                    </div>
+                </div>
+                <!-- AI Summary Output -->
+                <div id="ai-summary-output" style="display:none; margin-top:25px; background:#fff; border-radius:10px; box-shadow:0 2px 15px rgba(0,0,0,0.08); padding:25px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                        <h3 style="color:var(--text-heading);">📝 AI 综合分析报告</h3>
+                        <button class="btn btn-primary" style="padding:6px 16px; font-size:13px;" onclick="simulateExport(this)">导出报告 (.docx)</button>
+                    </div>
+                    <div id="ai-summary-body" style="font-size:14px; line-height:2; color:var(--text-main);"></div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -974,6 +1042,201 @@
 
         // Window resize
         window.addEventListener('resize', () => { Object.values(charts).forEach(c => c.resize()); });
+
+        // ==========================================
+        // PIN-TO-REPORT SYSTEM
+        // ==========================================
+        const pinnedItems = [];
+        const moduleNames = {
+            m1: '专家直接关系挖掘', m2: '多阶间接关系寻径', m3: '合作价值与轨迹溯源',
+            m4: '同事关系挖掘', m5: '校友关系挖掘', m6: '论文合著与核心节点',
+            m7: '科技企业全景统研', m8: '产业链重点事件传播', m9: '产业链全景态势'
+        };
+
+        window.pinItem = function(moduleId) {
+            const name = moduleNames[moduleId] || moduleId;
+            const item = { id: moduleId, name: name, time: new Date().toLocaleTimeString() };
+            pinnedItems.push(item);
+            updatePinBadge();
+            renderPinnedItems();
+            // flash feedback
+            const btn = event.target;
+            const orig = btn.innerText;
+            btn.innerText = '✅ 已钉选';
+            btn.style.background = 'var(--success-color)';
+            btn.style.color = '#fff';
+            setTimeout(() => { btn.innerText = orig; btn.style.background = ''; btn.style.color = ''; }, 1200);
+        };
+
+        function updatePinBadge() {
+            const badge = document.getElementById('pin-badge');
+            if (pinnedItems.length > 0) {
+                badge.style.display = 'inline';
+                badge.innerText = pinnedItems.length;
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
+        function renderPinnedItems() {
+            const container = document.getElementById('pinned-items-container');
+            if (pinnedItems.length === 0) {
+                container.innerHTML = '<div style="text-align:center; padding:60px 20px; color:var(--text-muted); font-size:14px;">暂无钉选内容。请在各分析模块中点击 <strong>"📌 钉选到报告"</strong> 按钮收集分析结论。</div>';
+                return;
+            }
+            container.innerHTML = pinnedItems.map((item, i) => `
+                <div style="background:#fff; border:1px solid var(--border-color); border-radius:8px; padding:15px 20px; display:flex; justify-content:space-between; align-items:center; box-shadow:0 1px 4px rgba(0,0,0,0.04);">
+                    <div>
+                        <strong style="color:var(--text-heading);">${item.name}</strong>
+                        <span style="color:var(--text-muted); font-size:12px; margin-left:10px;">钉选于 ${item.time}</span>
+                    </div>
+                    <button class="btn btn-outline" style="padding:4px 12px; font-size:12px; color:var(--danger-color); border-color:var(--danger-color);" onclick="removePinItem(${i})">移除</button>
+                </div>
+            `).join('');
+        }
+
+        window.removePinItem = function(index) {
+            pinnedItems.splice(index, 1);
+            updatePinBadge();
+            renderPinnedItems();
+        };
+
+        window.clearPinnedItems = function() {
+            pinnedItems.length = 0;
+            updatePinBadge();
+            renderPinnedItems();
+            document.getElementById('ai-summary-output').style.display = 'none';
+        };
+
+        // ==========================================
+        // AI SUMMARY (from pinned items)
+        // ==========================================
+        window.simulateAISummary = function(btn) {
+            if (pinnedItems.length === 0) { alert('请先在各模块中钉选分析结论'); return; }
+            const orig = btn.innerText;
+            btn.innerText = '🤖 AI 正在整合分析...';
+            btn.disabled = true;
+            btn.style.opacity = '0.7';
+            const moduleList = pinnedItems.map(p => p.name).join('、');
+            setTimeout(() => {
+                btn.innerText = orig;
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                const output = document.getElementById('ai-summary-output');
+                output.style.display = 'block';
+                document.getElementById('ai-summary-body').innerHTML = `
+                    <p><strong>📌 本报告基于以下模块的分析结论整合生成：</strong>${moduleList}</p>
+                    <hr style="margin:15px 0; border:none; border-top:1px solid #eee;">
+                    <p><strong>一、核心发现摘要</strong></p>
+                    <p>经系统综合 ${pinnedItems.length} 个分析维度的交叉比对，目标对象在学术影响力、产业合作深度和人脉网络广度三个方面均呈现显著特征。其直接合作网络覆盖 12 个国家/地区的 47 位核心协作者，间接关联路径可追溯至 3 个产业头部企业的技术决策层。</p>
+                    <p><strong>二、关系网络分析</strong></p>
+                    <p>通过同事关系推理和校友网络挖掘，发现目标对象与多个关键机构存在时间轴交叉，推理构建出 8 组高置信度（>90%）的历史同事关系，其中 3 组涉及当前重点产业链的核心企业。</p>
+                    <p><strong>三、合作价值量化</strong></p>
+                    <p>双节点贡献度评估显示，目标对象在近五年的联合成果中主导占比 65%，属于核心驱动型合作者。PageRank 全局排名位于领域前 2.3%，具备极高的学术号召力。</p>
+                    <p><strong>四、风险提示与建议</strong></p>
+                    <p>建议关注其 2019-2021 年间与某企业的密集合作期，该时段存在多项未公开的联合专利申请，可能涉及竞业限制范畴。建议在正式决策前补充法务尽调。</p>
+                `;
+                output.scrollIntoView({ behavior: 'smooth' });
+            }, 2000);
+        };
+
+        // ==========================================
+        // AI SMART REPORT (natural language search)
+        // ==========================================
+        window.simulateAIReport = function() {
+            const input = document.getElementById('ai-search-input').value.trim();
+            if (!input) { alert('请输入查询对象'); return; }
+            const resultDiv = document.getElementById('ai-report-result');
+            const titleEl = document.getElementById('ai-report-title');
+            const bodyEl = document.getElementById('ai-report-body');
+            resultDiv.style.display = 'block';
+            titleEl.innerText = '⏳ AI 正在调度全部相关模块进行深度挖掘...';
+            bodyEl.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-muted);">正在分析实体类型 → 调度引擎 → 生成报告...</div>';
+
+            setTimeout(() => {
+                // detect entity type
+                const isCompany = /公司|集团|企业|股份|科技|有限/.test(input);
+                const isIndustry = /产业链|材料|制造|新能源|半导体|芯片/.test(input);
+                if (isCompany) {
+                    titleEl.innerText = `📊 《${input}》企业科创深度穿透报告`;
+                    bodyEl.innerHTML = `
+                        <p style="color:var(--primary-color); font-weight:bold;">🏭 系统已识别实体类型：科技企业 → 自动调度模块 7（企业全景统研）、模块 6（核心节点排名）、模块 9（产业链定位）</p>
+                        <hr style="margin:12px 0; border:none; border-top:1px solid #eee;">
+                        <p><strong>一、企业科创支撑网穿透</strong></p>
+                        <p>「${input}」底层科创支撑网包含：特聘顾问学者 12 位（含院士 2 位）、联合实验室 5 个、核心专利权族 1,247 项（其中发明专利占 73%）。技术护城河评级：A+（极强）。</p>
+                        <p><strong>二、核心技术人才图谱</strong></p>
+                        <p>企业核心研发团队 PageRank 排名显示，首席科学家全球领域排名前 1.5%，3 位技术总监分别在语音识别、NLP、多模态领域占据头部位置。人才储备深度评级：优秀。</p>
+                        <p><strong>三、产业链生态位分析</strong></p>
+                        <p>该企业位于人工智能产业链中游（平台层），上游依赖芯片供应商 3 家，下游覆盖教育、医疗、政务等 7 个垂直应用场景。产业链话语权评分：82/100。</p>
+                        <p><strong>四、风险与机遇研判</strong></p>
+                        <p>近期全球大模型技术突破（GPT系列）对该企业核心业务形成替代性威胁，建议关注其技术路线转型进度。同时，其在教育AI领域的先发优势仍具较强壁垒。</p>
+                    `;
+                } else if (isIndustry) {
+                    titleEl.innerText = `📊 《${input}》产业链全景深度分析报告`;
+                    bodyEl.innerHTML = `
+                        <p style="color:var(--primary-color); font-weight:bold;">🗺 系统已识别实体类型：产业链 → 自动调度模块 9（全景态势）、模块 8（事件传播）、模块 7（企业统研）</p>
+                        <hr style="margin:12px 0; border:none; border-top:1px solid #eee;">
+                        <p><strong>一、产业链结构概览</strong></p>
+                        <p>「${input}」产业链涵盖上游（原材料/设备）企业 34 家、中游（制造/封装）企业 89 家、下游（应用/终端）企业 156 家。产业链成熟度指数：7.2/10（高速成长期）。</p>
+                        <p><strong>二、关键卡脖子节点</strong></p>
+                        <p>系统识别出 3 个核心技术瓶颈环节：其中 EDA 设计工具国产化率仅 5%，高纯度靶材供应集中度 CR3=89%，存在显著供应链安全风险。</p>
+                        <p><strong>三、学术-产业桥梁人才</strong></p>
+                        <p>通过多跳关系挖掘，发现 27 位同时活跃于学术界和产业界的桥梁型专家，其中 8 位与本区域机构存在校友或同事关系，具备高可引进性。</p>
+                        <p><strong>四、近期重大事件影响</strong></p>
+                        <p>TOP-3 高影响力事件：(1) 某国出口管制升级 → 波及中游 12 家企业；(2) 某院士团队技术突破 → 利好上游 3 家材料商；(3) 头部企业战略并购 → 产业链格局重塑中。</p>
+                    `;
+                } else {
+                    titleEl.innerText = `📊 《${input}》专家全景背景调查报告`;
+                    bodyEl.innerHTML = `
+                        <p style="color:var(--primary-color); font-weight:bold;">👤 系统已识别实体类型：学者/专家 → 自动调度模块 1-6（关系挖掘、合作测算、同事/校友推理、PR排名）</p>
+                        <hr style="margin:12px 0; border:none; border-top:1px solid #eee;">
+                        <p><strong>一、直接合作关系网络</strong></p>
+                        <p>「${input}」直接合作者共 47 位，覆盖 12 个国家/地区。核心合作圈层（Top-5）：清华大学 A 教授（论文合著 23 篇）、MIT B 教授（联合专利 8 项）、某企业 C 总监（产学研合作 5 项）等。</p>
+                        <p><strong>二、间接关联路径发现</strong></p>
+                        <p>经 6 度多跳寻径，发现与某能源集团技术决策层存在 3 跳强关联路径（A级置信度），传导链路为：目标学者 → 论文合著 → 某机构李XX → 联合专利 → 该集团王Y。</p>
+                        <p><strong>三、同事与校友网络推理</strong></p>
+                        <p>时间轴匹配算法识别出 8 组高置信度历史同事关系（匹配信度均 >90%），其中 2 组涉及企业核心高管。校友网络中发现 3 位直系师兄弟现任产业界关键岗位。</p>
+                        <p><strong>四、学术影响力排名</strong></p>
+                        <p>PageRank 全局排名：领域前 2.3%（Top 15/650）。近五年合作成果中主导占比 65%，属于核心驱动型学者。H-index: 42，总引用: 8,700+。</p>
+                        <p><strong>五、综合评估建议</strong></p>
+                        <p>目标人才具备极强的学术号召力和产业连接能力，引才价值评级：⭐⭐⭐⭐⭐。建议优先对接，并注意其 2019-2021 年间与某企业的密集合作期可能涉及竞业限制。</p>
+                    `;
+                }
+            }, 2500);
+        };
+
+        // ==========================================
+        // INJECT PIN BUTTONS INTO MODULE TOOLBARS
+        // ==========================================
+        document.addEventListener('DOMContentLoaded', function() {
+            // For modules with canvas-toolbar, add pin button
+            ['m1','m2','m3','m4','m5','m6','m7','m8','m9'].forEach(mid => {
+                const container = document.getElementById(mid);
+                if (!container) return;
+                const toolbar = container.querySelector('.canvas-toolbar');
+                const headerBar = container.querySelector('.panel-header-sm');
+                if (toolbar) {
+                    const pinBtn = document.createElement('button');
+                    pinBtn.className = 'btn btn-outline';
+                    pinBtn.style.cssText = 'padding:4px 12px; font-size:12px; margin-left:auto;';
+                    pinBtn.innerText = '📌 钉选到报告';
+                    pinBtn.onclick = function() { pinItem(mid); };
+                    toolbar.appendChild(pinBtn);
+                } else if (headerBar) {
+                    // For modules without toolbar, add after the first panel-header
+                    const canvasArea = container.querySelector('.canvas-area');
+                    if (canvasArea) {
+                        const pinBtn = document.createElement('button');
+                        pinBtn.className = 'btn btn-outline';
+                        pinBtn.style.cssText = 'position:absolute; top:10px; right:15px; padding:4px 12px; font-size:12px; z-index:20;';
+                        pinBtn.innerText = '📌 钉选到报告';
+                        pinBtn.onclick = function() { pinItem(mid); };
+                        canvasArea.style.position = 'relative';
+                        canvasArea.appendChild(pinBtn);
+                    }
+                }
+            });
+        });
     </script>
 </body>
 </html>
