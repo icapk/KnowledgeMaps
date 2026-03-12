@@ -700,6 +700,7 @@
                         <label class="form-label">图谱拓扑控制台 (Visualization Customization)</label>
                         <label class="checkbox-label" style="font-size:12px; margin-top:5px;"><input type="checkbox" checked> 采用强力 Hierarchy 分层布局 (上/中/下游对齐)</label>
                         <label class="checkbox-label" style="font-size:12px;"><input type="checkbox"> 折叠最底层的叶子节点 (降低渲染压力)</label>
+                        <label class="checkbox-label" style="font-size:12px;" id="fusion-toggle-label"><input type="checkbox" checked onchange="toggleScholarFusion(this.checked)"> 融合渲染科研人才/实验室节点 (跨域融合)</label>
                         <label class="checkbox-label" style="font-size:12px;"><input type="checkbox" checked> 开启跨越层级的数据孤岛/潜规则合作连线</label>
                     </div>
                     <button class="btn btn-primary" style="margin-top:10px;" onclick="simulateToolAction(this, 'chart-m9')">宏观图景上帝渲染</button>
@@ -962,20 +963,51 @@
         initEchart('chart-m8', { backgroundColor: 'transparent', tooltip:{}, series:[{type:'graph', layout:'force', force:{repulsion:300}, roam:true, nodes:m8Nodes, links:m8Links}]});
 
         // M9: Industry hierarchy
-        initEchart('chart-m9', {tooltip:{}, series:[{
-            type:'graph', layout:'force', force:{repulsion:180, edgeLength:[80,200]}, roam:true, label:{show:true, fontSize:10},
-            categories:[{name:'上游'},{name:'中游'},{name:'下游'}],
-            nodes:[
-                {name:'锂矿开采(上游全景)', symbolSize:45, category:0, itemStyle:{color:colorMap.orange}}, {name:'钴矿提纯', symbolSize:35, category:0, itemStyle:{color:colorMap.orange}}, {name:'新材料交叉团队(学术)', symbolSize:20, category:0, itemStyle:{color:colorMap.red}},
-                {name:'正极材料研制(中游引擎)', symbolSize:55, category:1, itemStyle:{color:colorMap.blue}}, {name:'电池封装平台', symbolSize:40, category:1, itemStyle:{color:colorMap.blue}},
-                {name:'整车制造(下游赋能)', symbolSize:60, category:2, itemStyle:{color:colorMap.green}, label:{fontSize:13, fontWeight:'bold'}}
-            ],
-            links:[
-                {source:'锂矿开采(上游全景)', target:'正极材料研制(中游引擎)', lineStyle:{width:3}}, {source:'钴矿提纯', target:'正极材料研制(中游引擎)'},{source:'新材料交叉团队(学术)', target:'正极材料研制(中游引擎)', lineStyle:{type:'dashed', color:colorMap.red}},
-                {source:'正极材料研制(中游引擎)', target:'电池封装平台', lineStyle:{width:4}},
-                {source:'电池封装平台', target:'整车制造(下游赋能)', lineStyle:{width:5, color:colorMap.green}}
-            ]
-        }]});
+        // M9: Industry hierarchy with Scholar Fusion
+        initEchart('chart-m9', {
+            tooltip:{}, 
+            legend: { 
+                data: ['上游企业', '中游企业', '下游应用', '科研人才/实验室'], 
+                bottom: 10, 
+                textStyle: {color: '#ccc'},
+                selected: {'科研人才/实验室': true}
+            },
+            series:[{
+                type:'graph', layout:'force', force:{repulsion:180, edgeLength:[100,220]}, roam:true, label:{show:true, fontSize:10},
+                categories:[{name:'上游企业'},{name:'中游企业'},{name:'下游应用'},{name:'科研人才/实验室'}],
+                nodes:[
+                    {name:'锂矿开采(上游全景)', symbolSize:45, category:0, itemStyle:{color:colorMap.orange}}, {name:'钴矿提纯', symbolSize:35, category:0, itemStyle:{color:colorMap.orange}}, 
+                    {name:'正极材料研制(中游引擎)', symbolSize:55, category:1, itemStyle:{color:colorMap.blue}}, {name:'电池封装平台', symbolSize:40, category:1, itemStyle:{color:colorMap.blue}},
+                    {name:'整车制造(下游赋能)', symbolSize:60, category:2, itemStyle:{color:colorMap.green}, label:{fontSize:13, fontWeight:'bold'}},
+                    
+                    // Cross-domain entities
+                    {name:'新材料交叉团队(学术)', symbolSize:22, category:3, itemStyle:{color:colorMap.red}},
+                    {name:'张维理教授 (技术顾问)', symbolSize:25, category:3, itemStyle:{color:colorMap.red}},
+                    {name:'固态电池联合实验室', symbolSize:28, category:3, itemStyle:{color:colorMap.red}}
+                ],
+                links:[
+                    {source:'锂矿开采(上游全景)', target:'正极材料研制(中游引擎)', lineStyle:{width:2}}, {source:'钴矿提纯', target:'正极材料研制(中游引擎)'},
+                    {source:'正极材料研制(中游引擎)', target:'电池封装平台', lineStyle:{width:3}},
+                    {source:'电池封装平台', target:'整车制造(下游赋能)', lineStyle:{width:4, color:colorMap.green}},
+                    
+                    // Cross-domain links (dashed)
+                    {source:'新材料交叉团队(学术)', target:'锂矿开采(上游全景)', label:{show:true, formatter:'技术输出'}, lineStyle:{type:'dashed', color:colorMap.red, opacity:0.6}},
+                    {source:'张维理教授 (技术顾问)', target:'正极材料研制(中游引擎)', label:{show:true, formatter:'首席顾问'}, lineStyle:{type:'dashed', color:colorMap.red, opacity:0.6}},
+                    {source:'固态电池联合实验室', target:'电池封装平台', label:{show:true, formatter:'联合研发'}, lineStyle:{type:'dashed', color:colorMap.red, opacity:0.6}},
+                    {source:'固态电池联合实验室', target:'整车制造(下游赋能)', label:{show:true, formatter:'专利转化'}, lineStyle:{type:'dashed', color:colorMap.red, opacity:0.6}}
+                ]
+            }]
+        });
+
+        // Function to toggle fusion view
+        window.toggleScholarFusion = function(checked) {
+            const chart = charts['chart-m9'];
+            if(!chart) return;
+            chart.dispatchAction({
+                type: 'legendToggleSelect',
+                name: '科研人才/实验室'
+            });
+        };
 
         // Add Node Tag Logic
         function addNodeTag() {
