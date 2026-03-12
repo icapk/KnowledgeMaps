@@ -102,6 +102,22 @@
         
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-thumb { background: #c0c4cc; border-radius: 3px; }
+
+        /* Modal Overlay */
+        .modal-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; display:flex; align-items:center; justify-content:center; }
+        .modal-box { background:#fff; border-radius:12px; padding:30px; max-width:650px; width:90%; max-height:80vh; overflow-y:auto; box-shadow:0 8px 40px rgba(0,0,0,0.2); position:relative; }
+        .modal-close { position:absolute; top:12px; right:16px; font-size:20px; cursor:pointer; color:#999; background:none; border:none; }
+        .modal-close:hover { color:#333; }
+
+        /* Export Dropdown */
+        .export-group { position:relative; display:inline-block; }
+        .export-dropdown { display:none; position:absolute; top:100%; right:0; background:#fff; border:1px solid var(--border-color); border-radius:6px; box-shadow:0 4px 15px rgba(0,0,0,0.12); z-index:100; min-width:180px; padding:6px 0; }
+        .export-dropdown.show { display:block; }
+        .export-dropdown-item { padding:8px 16px; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:8px; }
+        .export-dropdown-item:hover { background:#ecf5ff; color:var(--primary-color); }
+
+        /* Data source tag */
+        .data-source { margin-top:15px; padding:10px; background:#f0f7ff; border-radius:6px; border-left:3px solid var(--primary-color); font-size:11px; color:var(--text-muted); line-height:1.6; }
     </style>
 </head>
 <body>
@@ -143,6 +159,9 @@
         </div>
 
         <div class="nav-group">🤖 AI智能与报告中心</div>
+        <div class="nav-item" data-target="mUpload">
+            <span class="icon">⬆️</span> 自定义数据上传与图谱生成
+        </div>
         <div class="nav-item" data-target="mAI">
             <span class="icon">💬</span> AI智能报告生成
         </div>
@@ -204,6 +223,9 @@
                             <span class="tag">学者: 890</span><span class="tag">企业高管: 120</span><span class="tag">实验室: 45</span>
                         </div>
                     </div>
+                    <div class="data-source">
+                        📚 <strong>数据来源：</strong>CNKI中国知网 · 万方数据 · Web of Science · Scopus · 国家知识产权局专利库 · 国家自然科学基金委项目库 · 天眼查/企查查工商数据
+                    </div>
                 </div>
             </div>
             <div class="canvas-area">
@@ -212,7 +234,16 @@
                     <button class="btn btn-outline" style="padding:4px 10px; font-size:12px; background:#ecf5ff; border-color:#c6e2ff; color:var(--primary-color)" onclick="switchLayout('force', this)">力导向图 (Force)</button>
                     <button class="btn btn-outline" style="padding:4px 10px; font-size:12px;" onclick="switchLayout('circular', this)">层级树 (Hierarchy)</button>
                     <span style="flex-grow:1"></span>
-                    <button class="btn btn-primary" style="padding:4px 10px; font-size:12px;" onclick="simulateExport(this)">导出关系矩阵CSV</button>
+                    <div class="export-group">
+                        <button class="btn btn-primary" style="padding:4px 10px; font-size:12px;" onclick="toggleExportMenu(this)">⬇ 导出 ▾</button>
+                        <div class="export-dropdown">
+                            <div class="export-dropdown-item" onclick="simulateExport(this)">📄 导出关系矩阵 (.csv)</div>
+                            <div class="export-dropdown-item" onclick="simulateExport(this)">🖼 导出图谱图片 (.png)</div>
+                            <div class="export-dropdown-item" onclick="simulateExport(this)">🌐 导出矢量图 (.svg)</div>
+                            <div class="export-dropdown-item" onclick="simulateExport(this)">📁 导出可编辑图谱 (.graphml)</div>
+                            <div class="export-dropdown-item" onclick="simulateExport(this)">📑 导出综合报告 (.pdf)</div>
+                        </div>
+                    </div>
                 </div>
                 <div class="canvas-content"><div id="chart-m1" class="chart-wrapper"></div></div>
             </div>
@@ -273,8 +304,8 @@
                                     <tr><th>起点 Node</th><th>传导跳数</th><th>传递路径轨迹 (中间节点与机构)</th><th>关联强度评分</th><th>关系类型标注</th><th>操作</th></tr>
                                 </thead>
                                 <tbody>
-                                    <tr><td>张维理</td><td>3 跳</td><td>[起点] -> 论文合著 -> 李XX (某机构) -> 共同申请专利 -> 王Y (某能源公司)</td><td><span style="color:var(--success-color);">A级 (强关联)</span></td><td><span class="tag">产学研综合传递</span></td><td><a href="#" onclick="simulateJumpToM3(this); return false;" style="color:var(--primary-color);">查看全量证据</a></td></tr>
-                                    <tr><td>张维理</td><td>4 跳</td><td>[起点] -> 同门导师 -> 张三 -> 等4位学者 -> 赵四 (某能源公司高管)</td><td><span style="color:var(--warning-color);">B级 (中等)</span></td><td><span class="tag">师门人脉扩散</span></td><td><a href="#" onclick="simulateJumpToM3(this); return false;" style="color:var(--primary-color);">查看全量证据</a></td></tr>
+                                    <tr><td>张维理</td><td>3 跳</td><td>[起点] -> 论文合著 -> 李XX (某机构) -> 共同申请专利 -> 王Y (某能源公司)</td><td><span style="color:var(--success-color);">A级 (强关联)</span></td><td><span class="tag">产学研综合传递</span></td><td><a href="#" onclick="showEvidenceDetail('王Y (某能源公司)', '产学研'); return false;" style="color:var(--primary-color);">查看全量证据</a></td></tr>
+                                    <tr><td>张维理</td><td>4 跳</td><td>[起点] -> 同门导师 -> 张三 -> 等4位学者 -> 赵四 (某能源公司高管)</td><td><span style="color:var(--warning-color);">B级 (中等)</span></td><td><span class="tag">师门人脉扩散</span></td><td><a href="#" onclick="showEvidenceDetail('王Y (某能源公司)', '产学研'); return false;" style="color:var(--primary-color);">查看全量证据</a></td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -392,8 +423,8 @@
                                     <tr><th>学者姓名</th><th>所在机构与背景</th><th>交集任职时段 (月数)</th><th>匹配信度</th><th>操作</th></tr>
                                 </thead>
                                 <tbody>
-                                    <tr><td>李维 研究员</td><td>纳米科学中心结构材料组</td><td>2013.09 - 2016.07 (34个月)</td><td><span style="color:var(--success-color);">98%</span></td><td><a href="#" onclick="simulateJumpToM3(this); return false;" style="color:var(--primary-color);">检索期间协作成果</a></td></tr>
-                                    <tr><td>吴华 高管</td><td>某材料所实验室</td><td>2014.11 - 2015.12 (13个月)</td><td><span style="color:var(--success-color);">92%</span></td><td><a href="#" onclick="simulateJumpToM3(this); return false;" style="color:var(--primary-color);">检索期间协作成果</a></td></tr>
+                                    <tr><td>李维 研究员</td><td>纳米科学中心结构材料组</td><td>2013.09 - 2016.07 (34个月)</td><td><span style="color:var(--success-color);">98%</span></td><td><a href="#" onclick="showEvidenceDetail('王Y (某能源公司)', '产学研'); return false;" style="color:var(--primary-color);">检索期间协作成果</a></td></tr>
+                                    <tr><td>吴华 高管</td><td>某材料所实验室</td><td>2014.11 - 2015.12 (13个月)</td><td><span style="color:var(--success-color);">92%</span></td><td><a href="#" onclick="showEvidenceDetail('王Y (某能源公司)', '产学研'); return false;" style="color:var(--primary-color);">检索期间协作成果</a></td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -454,8 +485,8 @@
                                     <tr><th>关系细分类别</th><th>校友信息</th><th>同源院系与阶段</th><th>就读时空交集</th><th>相关导师</th><th>操作</th></tr>
                                 </thead>
                                 <tbody>
-                                    <tr><td><span class="tag tag-success">直系师兄弟</span></td><td>陈丹 博士</td><td>某C9高校 - 计算机体系结构组</td><td><span style="color:var(--success-color);">2.5年 (强烈重叠)</span></td><td>张强 院士 (第一匹配)</td><td><a href="#" onclick="simulateJumpToM3(this); return false;" style="color:var(--primary-color);">核查后续职业互动</a></td></tr>
-                                    <tr><td><span class="tag tag-danger">强关联院友</span></td><td>王晓敏</td><td>某C9高校 - 某交叉实验室</td><td><span style="color:var(--warning-color);">1.2年 (部分重叠)</span></td><td>李教授</td><td><a href="#" onclick="simulateJumpToM3(this); return false;" style="color:var(--primary-color);">核查学术互动信息</a></td></tr>
+                                    <tr><td><span class="tag tag-success">直系师兄弟</span></td><td>陈丹 博士</td><td>某C9高校 - 计算机体系结构组</td><td><span style="color:var(--success-color);">2.5年 (强烈重叠)</span></td><td>张强 院士 (第一匹配)</td><td><a href="#" onclick="showEvidenceDetail('王Y (某能源公司)', '产学研'); return false;" style="color:var(--primary-color);">核查后续职业互动</a></td></tr>
+                                    <tr><td><span class="tag tag-danger">强关联院友</span></td><td>王晓敏</td><td>某C9高校 - 某交叉实验室</td><td><span style="color:var(--warning-color);">1.2年 (部分重叠)</span></td><td>李教授</td><td><a href="#" onclick="showEvidenceDetail('王Y (某能源公司)', '产学研'); return false;" style="color:var(--primary-color);">核查学术互动信息</a></td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -681,6 +712,37 @@
             </div>
             <div class="canvas-area">
                 <div class="canvas-content"><div id="chart-m9" class="chart-wrapper"></div></div>
+            </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- MODULE UPLOAD: User Data Upload -->
+        <!-- ============================================== -->
+        <div class="view-container" id="mUpload">
+            <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; background:linear-gradient(135deg, #f5f7fa 0%, #e8f5e9 100%); padding:40px;">
+                <div style="font-size:48px; margin-bottom:20px;">⬆️</div>
+                <h2 style="font-size:22px; color:var(--text-heading); margin-bottom:8px;">自定义数据上传与图谱生成</h2>
+                <p style="color:var(--text-muted); margin-bottom:30px; max-width:500px; text-align:center; line-height:1.8;">上传您自己的数据文件，系统自动识别实体与关系，生成专属知识图谱并与平台数据融合分析。</p>
+                <div id="upload-dropzone" style="width:100%; max-width:550px; border:2px dashed #c0c4cc; border-radius:12px; padding:50px 30px; text-align:center; cursor:pointer; transition:all 0.3s; background:#fff;" onclick="simulateUpload()" onmouseover="this.style.borderColor='var(--primary-color)';this.style.background='#f0f7ff'" onmouseout="this.style.borderColor='#c0c4cc';this.style.background='#fff'">
+                    <div style="font-size:36px; margin-bottom:15px;">📂</div>
+                    <p style="font-size:15px; color:var(--text-heading); margin-bottom:8px;">点击或拖拽文件到此区域上传</p>
+                    <p style="font-size:13px; color:var(--text-muted);">支持 Excel (.xlsx) · CSV · JSON · RDF/OWL · 最大 200MB</p>
+                </div>
+                <div style="display:flex; gap:15px; margin-top:20px;">
+                    <span class="tag" style="padding:6px 14px;">示例：学者列表.xlsx</span>
+                    <span class="tag" style="padding:6px 14px;">示例：专利数据.csv</span>
+                    <span class="tag" style="padding:6px 14px;">示例：企业关系.json</span>
+                </div>
+                <!-- Upload Result (hidden initially) -->
+                <div id="upload-result" style="display:none; width:100%; max-width:550px; margin-top:25px; background:#fff; border-radius:12px; box-shadow:0 4px 20px rgba(0,0,0,0.1); padding:25px;">
+                    <h3 style="color:var(--text-heading); margin-bottom:12px;">✅ 数据解析完成</h3>
+                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:15px;">
+                        <div class="data-card"><div class="data-card-title">识别实体</div><div class="data-card-value" style="font-size:20px;">328</div></div>
+                        <div class="data-card"><div class="data-card-title">抽取关系</div><div class="data-card-value" style="font-size:20px;">1,247</div></div>
+                        <div class="data-card"><div class="data-card-title">融合匹配</div><div class="data-card-value" style="font-size:20px;">89%</div></div>
+                    </div>
+                    <button class="btn btn-primary" style="width:100%;" onclick="document.querySelector('.nav-item[data-target=m1]').click()">🔍 进入图谱分析</button>
+                </div>
             </div>
         </div>
 
@@ -1038,6 +1100,124 @@
                     container.appendChild(tag);
                 });
             }, 1500);
+        };
+
+        // ==========================================
+        // EXPORT DROPDOWN TOGGLE
+        // ==========================================
+        window.toggleExportMenu = function(btn) {
+            const dropdown = btn.parentElement.querySelector('.export-dropdown');
+            dropdown.classList.toggle('show');
+            // Close on outside click
+            setTimeout(() => {
+                document.addEventListener('click', function handler(e) {
+                    if (!btn.parentElement.contains(e.target)) {
+                        dropdown.classList.remove('show');
+                        document.removeEventListener('click', handler);
+                    }
+                });
+            }, 10);
+        };
+
+        // ==========================================
+        // UPLOAD SIMULATION
+        // ==========================================
+        window.simulateUpload = function() {
+            const dropzone = document.getElementById('upload-dropzone');
+            const result = document.getElementById('upload-result');
+            dropzone.innerHTML = '<div style="font-size:36px; margin-bottom:15px;">⏳</div><p style="font-size:15px; color:var(--primary-color);">正在解析数据并构建实体-关系模型...</p><div style="margin-top:15px; height:4px; background:#e4e7ed; border-radius:2px; overflow:hidden;"><div style="width:0%; height:100%; background:var(--primary-color); border-radius:2px; transition:width 2s;" id="upload-progress"></div></div>';
+            setTimeout(() => { document.getElementById('upload-progress').style.width = '100%'; }, 100);
+            setTimeout(() => {
+                dropzone.innerHTML = '<div style="font-size:36px; margin-bottom:15px;">✅</div><p style="font-size:15px; color:var(--success-color); font-weight:bold;">学者列表.xlsx 解析成功</p><p style="font-size:13px; color:var(--text-muted);">点击此处可重新上传</p>';
+                result.style.display = 'block';
+            }, 2500);
+        };
+
+        // ==========================================
+        // NODE CLICK DETAIL MODAL (feedback #6)
+        // ==========================================
+        window.showNodeDetail = function(name) {
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.onclick = function(e) { if(e.target === modal) modal.remove(); };
+            modal.innerHTML = `
+                <div class="modal-box">
+                    <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">✕</button>
+                    <h3 style="margin-bottom:15px; color:var(--text-heading);">📋 实体详情：${name}</h3>
+                    <table>
+                        <tr><th style="width:120px;">姓名/名称</th><td><strong>${name}</strong></td></tr>
+                        <tr><th>所属机构</th><td>清华大学 交叉信息研究院</td></tr>
+                        <tr><th>职称/职务</th><td>教授 / 博士生导师</td></tr>
+                        <tr><th>研究方向</th><td>人工智能、知识图谱、自然语言处理</td></tr>
+                        <tr><th>发表论文</th><td>187 篇（SCI/EI: 142 篇）</td></tr>
+                        <tr><th>授权专利</th><td>34 项（发明专利: 28 项）</td></tr>
+                        <tr><th>H-index</th><td>42</td></tr>
+                        <tr><th>PageRank</th><td>领域前 2.3%（Top 15/650）</td></tr>
+                        <tr><th>与中心节点关系</th><td><span class="tag">论文合著 23篇</span><span class="tag">联合专利 5项</span><span class="tag">同一课题组</span></td></tr>
+                    </table>
+                    <div class="data-source" style="margin-top:15px;">
+                        📚 <strong>数据来源：</strong>CNKI · Web of Science · 国家知识产权局
+                    </div>
+                    <div style="margin-top:15px; display:flex; gap:10px;">
+                        <button class="btn btn-primary" style="flex:1;" onclick="this.closest('.modal-overlay').remove(); document.querySelector('.nav-item[data-target=m3]').click();">查看合作成果</button>
+                        <button class="btn btn-outline" style="flex:1;" onclick="simulateExport(this)">导出实体档案</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        };
+
+        // Attach click handlers to ECharts nodes
+        function attachNodeClickHandlers() {
+            Object.entries(charts).forEach(([id, chart]) => {
+                chart.on('click', function(params) {
+                    if (params.dataType === 'node' || params.componentType === 'series') {
+                        if (params.name && params.name.length > 0) {
+                            showNodeDetail(params.name);
+                        }
+                    }
+                });
+            });
+        }
+        // Delay to ensure charts are initialized
+        setTimeout(attachNodeClickHandlers, 2000);
+
+        // ==========================================
+        // EVIDENCE DETAIL MODAL (feedback #3)
+        // ==========================================
+        window.showEvidenceDetail = function(scholar, type) {
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.onclick = function(e) { if(e.target === modal) modal.remove(); };
+            modal.innerHTML = `
+                <div class="modal-box">
+                    <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">✕</button>
+                    <h3 style="margin-bottom:15px; color:var(--text-heading);">📑 精准证据溯源：${scholar}</h3>
+                    <div style="margin-bottom:15px;">
+                        <h4 style="font-size:14px; margin-bottom:10px;">📄 论文原文证据</h4>
+                        <div style="background:#f9f9f9; border-left:3px solid var(--primary-color); padding:12px 15px; font-size:13px; line-height:1.8; margin-bottom:10px; border-radius:4px;">
+                            <strong>[论文]</strong> "A Novel Framework for Knowledge Graph Embedding with Multi-hop Reasoning"<br>
+                            <em style="color:var(--text-muted);">Journal of AI Research, 2023, Vol.68, pp.1245-1267</em><br>
+                            <span style="background:#fff3cd; padding:1px 4px;">原文第3.2节：</span>"...与 ${scholar} 团队在实体消歧算法上展开深度合作，联合提出了基于时序注意力的跨域实体对齐方法..."
+                        </div>
+                    </div>
+                    <div style="margin-bottom:15px;">
+                        <h4 style="font-size:14px; margin-bottom:10px;">📋 专利证据</h4>
+                        <div style="background:#f9f9f9; border-left:3px solid var(--warning-color); padding:12px 15px; font-size:13px; line-height:1.8; border-radius:4px;">
+                            <strong>[专利]</strong> CN202310892345.6 "一种基于知识图谱的多模态实体融合方法"<br>
+                            <em style="color:var(--text-muted);">发明人：张维理, ${scholar} 等 | 申请日：2023-07-15</em><br>
+                            <div style="margin-top:8px; background:#eee; height:80px; border-radius:4px; display:flex; align-items:center; justify-content:center; color:#999; font-size:12px;">
+                                📐 专利附图 (Fig.3: 系统架构图) — 点击查看原件
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                        <button class="btn btn-primary" style="flex:1;" onclick="simulateExport(this)">导出全部证据 (.pdf)</button>
+                        <button class="btn btn-outline" style="flex:1;" onclick="simulateExport(this)">导出原文引用 (.bib)</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
         };
 
         // Window resize
