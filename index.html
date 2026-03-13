@@ -1,0 +1,1454 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>亿级科技知识图谱系统 - 全功能还原演示版</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+    <style>
+        :root {
+            --bg-body: #f5f7fa;
+            --bg-panel: #ffffff;
+            --sidebar-bg: #001529;
+            --sidebar-text: #a6adb4;
+            --sidebar-active-bg: #1890ff;
+            --sidebar-active-text: #ffffff;
+            --border-color: #e4e7ed;
+            --text-heading: #303133;
+            --text-main: #606266;
+            --text-muted: #909399;
+            --primary-color: #409eff;
+            --success-color: #67c23a;
+            --warning-color: #e6a23c;
+            --danger-color: #f56c6c;
+            --shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', Arial, sans-serif; }
+        body { background-color: var(--bg-body); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; font-size: 14px; }
+
+        /* Left Navigation */
+        .sidebar { width: 280px; background-color: var(--sidebar-bg); color: var(--sidebar-text); display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; }
+        .logo { height: 60px; padding: 0 20px; font-size: 16px; font-weight: bold; color: #fff; display: flex; align-items: center; gap: 10px; background: #002140; position: sticky; top: 0; z-index: 10;}
+        .logo-icon { width: 24px; height: 24px; background: var(--primary-color); border-radius: 4px; display: flex; align-items: center; justify-content: center; }
+        
+        .nav-group { padding: 15px 0 5px 20px; font-size: 12px; color: #7f8c8d; text-transform: uppercase; font-weight: bold; border-top: 1px solid rgba(255,255,255,0.05); margin-top: 10px;}
+        .nav-item { padding: 12px 20px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 10px; line-height: 1.4; }
+        .nav-item:hover { color: #fff; background: rgba(255,255,255,0.05); }
+        .nav-item.active { background-color: var(--sidebar-active-bg); color: var(--sidebar-active-text); }
+        .nav-item .icon { width: 16px; height: 16px; flex-shrink: 0; }
+
+        /* Main Workspace */
+        .workspace { flex-grow: 1; display: flex; flex-direction: column; position: relative; overflow: hidden; }
+        
+        /* Top Header */
+        .header { height: 60px; background: #fff; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; flex-shrink: 0; box-shadow: 0 1px 4px rgba(0,21,41,.04); z-index: 5; }
+        .header-title { font-size: 18px; font-weight: 600; color: var(--text-heading); }
+        .user-center { display: flex; align-items: center; gap: 15px; }
+        
+        /* View Container */
+        .view-container { display: none; flex-grow: 1; overflow: hidden; flex-direction: row; }
+        .view-container.active { display: flex; }
+
+        /* Control Panel (Left side of View) */
+        .control-panel { width: 320px; background: #fff; border-right: 1px solid var(--border-color); display: flex; flex-direction: column; flex-shrink: 0; z-index: 2; box-shadow: 2px 0 8px rgba(0,0,0,0.05); }
+        .panel-header-sm { padding: 15px 20px; border-bottom: 1px solid var(--border-color); font-weight: bold; color: var(--text-heading); background: #fafafa; }
+        .panel-body-scroll { padding: 20px; overflow-y: auto; flex-grow: 1; display: flex; flex-direction: column; gap: 20px; }
+        
+        /* Main Canvas (Right side of View) */
+        .canvas-area { flex-grow: 1; display: flex; flex-direction: column; position: relative; background: #fdfdfd; }
+        .canvas-toolbar { height: 48px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; padding: 0 20px; gap: 15px; background: #fff; }
+        .canvas-content { flex-grow: 1; position: relative; }
+        .chart-wrapper { width: 100%; height: 100%; position: absolute; top:0; left:0; }
+        
+        /* Time Slider for Traceability */
+        .time-slider-container { height: 70px; border-top: 1px solid var(--border-color); background: #fff; padding: 10px 30px; display: flex; flex-direction: column; justify-content: center; }
+        
+        /* UI Components */
+        .form-group { display: flex; flex-direction: column; gap: 8px; }
+        .form-label { font-size: 13px; font-weight: 500; color: var(--text-heading); display: flex; justify-content: space-between; }
+        .form-input { padding: 8px 12px; border: 1px solid #dcdfe6; border-radius: 4px; outline: none; transition: border-color .2s; font-size: 13px; width: 100%; }
+        .form-input:focus { border-color: var(--primary-color); }
+        .form-select { padding: 8px 12px; border: 1px solid #dcdfe6; border-radius: 4px; outline: none; background: #fff; width: 100%; font-size: 13px;}
+        .form-range { width: 100%; cursor: pointer;}
+        
+        .checkbox-group { display: flex; flex-direction: column; gap: 8px; }
+        .checkbox-label { display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; }
+        
+        .btn { padding: 10px 20px; border-radius: 4px; font-size: 14px; font-weight: 500; cursor: pointer; text-align: center; border: none; transition: .1s; }
+        .btn-primary { background: var(--primary-color); color: #fff; }
+        .btn-primary:hover { background: #66b1ff; }
+        .btn-outline { background: #fff; border: 1px solid #dcdfe6; color: var(--text-main); }
+        .btn-outline:hover { color: var(--primary-color); border-color: #c6e2ff; background-color: #ecf5ff; }
+
+        .tag { display: inline-block; padding: 2px 8px; font-size: 12px; color: var(--primary-color); background: #ecf5ff; border: 1px solid #d9ecff; border-radius: 4px; margin-right: 5px; margin-bottom: 5px;}
+        .tag-danger { color: var(--danger-color); background: #fef0f0; border-color: #fde2e2; }
+        .tag-warning { color: var(--warning-color); background: #fdf6ec; border-color: #faecd8; }
+
+        /* Data cards */
+        .data-card { background: #fff; border: 1px solid var(--border-color); border-radius: 6px; padding: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .data-card-title { font-size: 13px; color: var(--text-muted); margin-bottom: 8px; }
+        .data-card-value { font-size: 24px; font-weight: bold; color: var(--text-heading); }
+        
+        /* Tables */
+        table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; }
+        th, td { padding: 12px 10px; border-bottom: 1px solid #ebeef5; }
+        th { color: var(--text-muted); font-weight: 500; background: #fafafa; }
+        
+        /* Stats Panel Split for View 3 */
+        .split-panel { display: flex; height: 100%; flex-direction: column; }
+        .split-top { height: 40%; border-bottom: 1px solid var(--border-color); display: flex; }
+        .split-bottom { height: 60%; position: relative; }
+        
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-thumb { background: #c0c4cc; border-radius: 3px; }
+
+        /* Modal Overlay */
+        .modal-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; display:flex; align-items:center; justify-content:center; }
+        .modal-box { background:#fff; border-radius:12px; padding:30px; max-width:650px; width:90%; max-height:80vh; overflow-y:auto; box-shadow:0 8px 40px rgba(0,0,0,0.2); position:relative; }
+        .modal-close { position:absolute; top:12px; right:16px; font-size:20px; cursor:pointer; color:#999; background:none; border:none; }
+        .modal-close:hover { color:#333; }
+
+        /* Export Dropdown */
+        .export-group { position:relative; display:inline-block; }
+        .export-dropdown { display:none; position:absolute; top:100%; right:0; background:#fff; border:1px solid var(--border-color); border-radius:6px; box-shadow:0 4px 15px rgba(0,0,0,0.12); z-index:100; min-width:180px; padding:6px 0; }
+        .export-dropdown.show { display:block; }
+        .export-dropdown-item { padding:8px 16px; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:8px; }
+        .export-dropdown-item:hover { background:#ecf5ff; color:var(--primary-color); }
+
+        /* Data source tag */
+        .data-source { margin-top:15px; padding:10px; background:#f0f7ff; border-radius:6px; border-left:3px solid var(--primary-color); font-size:11px; color:var(--text-muted); line-height:1.6; }
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR NAVIGATION -->
+    <div class="sidebar">
+        <div class="logo">
+            <div class="logo-icon">KG</div>
+            <span>科技知识图谱平台 <span style="font-size:10px; opacity:0.7;">Bidding完整版</span></span>
+        </div>
+        
+        <div class="nav-group">核心功能板块</div>
+        <div class="nav-item active" data-target="m1">
+            <span class="icon">🎯</span> 1. 专家直接关系挖掘
+        </div>
+        <div class="nav-item" data-target="m2">
+            <span class="icon">🕸</span> 2. 单节点多阶间接关系
+        </div>
+        <div class="nav-item" data-target="m3">
+            <span class="icon">⚖️</span> 3. 合作价值与轨迹溯源
+        </div>
+        <div class="nav-item" data-target="m4">
+            <span class="icon">🏢</span> 4. 同事关系挖掘能力
+        </div>
+        <div class="nav-item" data-target="m5">
+            <span class="icon">🎓</span> 5. 校友关系挖掘能力
+        </div>
+        <div class="nav-item" data-target="m6">
+            <span class="icon">🔬</span> 6. 论文合著与核心节点(PR)
+        </div>
+        <div class="nav-item" data-target="m7">
+            <span class="icon">🏭</span> 7. 科技企业全景统研
+        </div>
+        <div class="nav-item" data-target="m8">
+            <span class="icon">📡</span> 8. 产业链重点事件传播
+        </div>
+        <div class="nav-item" data-target="m9">
+            <span class="icon">🗺</span> 9. 产业链全景态势展现
+        </div>
+
+        <div class="nav-group">🤖 AI智能与报告中心</div>
+        <div class="nav-item" data-target="mUpload">
+            <span class="icon">⬆️</span> 自定义数据上传与图谱生成
+        </div>
+        <div class="nav-item" data-target="mAI">
+            <span class="icon">💬</span> AI智能报告生成
+        </div>
+        <div class="nav-item" data-target="mReport">
+            <span class="icon">📋</span> 报告工作台 <span id="pin-badge" style="background:var(--danger-color);color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;margin-left:auto;display:none;">0</span>
+        </div>
+    </div>
+
+    <!-- MAIN WORKSPACE -->
+    <div class="workspace">
+        <div class="header">
+            <div class="header-title" id="top-title">1. 专家/人才直接关系挖掘能力</div>
+            <div class="user-center">
+                <span>系统管理员</span>
+                <div style="width:30px;height:30px;background:var(--primary-color);color:#fff;border-radius:50%;text-align:center;line-height:30px;font-weight:bold;">A</div>
+            </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- MODULE 1: Direct Relationship -->
+        <!-- ============================================== -->
+        <div class="view-container active" id="m1">
+            <div class="control-panel">
+                <div class="panel-header-sm">挖掘约束条件配置</div>
+                <div class="panel-body-scroll">
+                    <div class="form-group">
+                        <label class="form-label">中心锚点专家/人才</label>
+                        <input type="text" class="form-input" value="张维理 (清华大学交叉信息院)">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">关联关系图谱边界设定 (可多选)</label>
+                        <div class="checkbox-group">
+                            <label class="checkbox-label"><input type="checkbox" checked> 共同作者 (论文/专著)</label>
+                            <label class="checkbox-label"><input type="checkbox" checked> 共同发明人 (专利)</label>
+                            <label class="checkbox-label"><input type="checkbox" checked> 共同项目组成员 (国自然/横向项目)</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">时间窗约束 (出版/立项日期)</label>
+                        <div style="display:flex; gap:10px;">
+                            <input type="date" class="form-input" value="2010-01-01">
+                            <input type="date" class="form-input" value="2024-12-31">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">包含的机构约束</label>
+                        <select class="form-select">
+                            <option>不限机构范围</option>
+                            <option>限定“C9联盟”高校</option>
+                            <option>限定“三桶油”下属科研院所</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" style="margin-top:10px;" onclick="simulateToolAction(this, 'chart-m1')">执行实体抽取与扩扑映射</button>
+                    
+                    <div class="data-card" style="margin-top:20px; background:#f4f9ff; border-color:#baddff;">
+                        <div class="data-card-title">命中1度关联实体池</div>
+                        <div class="data-card-value" style="color:var(--primary-color)">1,245 <span style="font-size:12px; font-weight:normal; color:#666;">个独立节点</span></div>
+                        <div style="margin-top:10px;">
+                            <span class="tag">学者: 890</span><span class="tag">企业高管: 120</span><span class="tag">实验室: 45</span>
+                        </div>
+                    </div>
+                    <div class="data-source">
+                        📚 <strong>数据来源：</strong>CNKI中国知网 · 万方数据 · Web of Science · Scopus · 国家知识产权局专利库 · 国家自然科学基金委项目库 · 天眼查/企查查工商数据
+                    </div>
+                </div>
+            </div>
+            <div class="canvas-area">
+                <div class="canvas-toolbar">
+                    <span style="font-size:13px; font-weight:500;">图谱展示模式:</span>
+                    <button class="btn btn-outline" style="padding:4px 10px; font-size:12px; background:#ecf5ff; border-color:#c6e2ff; color:var(--primary-color)" onclick="switchLayout('force', this)">力导向图 (Force)</button>
+                    <button class="btn btn-outline" style="padding:4px 10px; font-size:12px;" onclick="switchLayout('circular', this)">层级树 (Hierarchy)</button>
+                    <span style="flex-grow:1"></span>
+                    <div class="export-group">
+                        <button class="btn btn-primary" style="padding:4px 10px; font-size:12px;" onclick="toggleExportMenu(this)">⬇ 导出 ▾</button>
+                        <div class="export-dropdown">
+                            <div class="export-dropdown-item" onclick="simulateExport(this)">📄 导出关系矩阵 (.csv)</div>
+                            <div class="export-dropdown-item" onclick="simulateExport(this)">🖼 导出图谱图片 (.png)</div>
+                            <div class="export-dropdown-item" onclick="simulateExport(this)">🌐 导出矢量图 (.svg)</div>
+                            <div class="export-dropdown-item" onclick="simulateExport(this)">📁 导出可编辑图谱 (.graphml)</div>
+                            <div class="export-dropdown-item" onclick="simulateExport(this)">📑 导出综合报告 (.pdf)</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="canvas-content"><div id="chart-m1" class="chart-wrapper"></div></div>
+            </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- MODULE 2: Indirect Relationship Finding -->
+        <!-- ============================================== -->
+        <div class="view-container" id="m2">
+            <div class="control-panel">
+                <div class="panel-header-sm">N度间接关联寻径沙盒</div>
+                <div class="panel-body-scroll">
+                    <div class="form-group">
+                        <label class="form-label">寻点起点 Node A</label>
+                        <input type="text" class="form-input" value="张维理 (教授)">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">探测最大跳数 (Hop Limit)</label>
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <input type="range" class="form-range" min="1" max="6" value="5" oninput="document.getElementById('m2-hop-val').innerText=this.value+' 跳'">
+                            <span id="m2-hop-val" style="width:40px; text-align:right; font-weight:bold;">5 跳</span>
+                        </div>
+                        <span style="font-size:11px; color:var(--danger-color);">* 标书要求：支持最大6度人脉计算</span>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">必经节点条件 (组织机构限制)</label>
+                        <input type="text" class="form-input" value="某新能源科技有限责任公司" placeholder="例如必须通过某企业、某高校传递">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">时间维度下钻 (Time Slice)</label>
+                        <select class="form-select"><option>近 5 年 (2019-2024)</option><option>近 10 年</option><option>不限时段</option></select>
+                    </div>
+                    <button class="btn btn-primary" style="margin-top:10px;" onclick="simulateToolAction(this, 'chart-m2')">异步提交分布式图算法寻迹</button>
+                    <div style="padding:15px; background:#fef0f0; border-radius:4px; font-size:12px; border:1px solid #fde2e2;">
+                        <strong>寻优结果分析：</strong><br>
+                        共找到 <span style="color:var(--danger-color); font-weight:bold;">342</span> 条符合多跳约束的连通链路。最短链路跳数为 3 跳。核心中转节点为图谱高亮的节点群体。
+                    </div>
+                </div>
+            </div>
+            <div class="canvas-area">
+                <div class="canvas-toolbar">
+                    <span style="font-size:13px; font-weight:500;">图谱展示模式:</span>
+                    <button class="btn btn-outline" style="padding:4px 10px; font-size:12px; background:#ecf5ff; border-color:#c6e2ff; color:var(--primary-color)">多度力导向图 (Force)</button>
+                </div>
+                <div class="canvas-content" style="display:flex; flex-direction:column;">
+                    <div style="flex:2; position:relative;"><div id="chart-m2" class="chart-wrapper"></div></div>
+                    <div style="flex:1; border-top:1px solid var(--border-color); background:#fafafa; display:flex; flex-direction:column;">
+                        <div style="padding:8px 15px; border-bottom:1px solid #ddd; display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-size:13px; font-weight:bold; color:#333;">间接关系传递轨迹 (结构化归档清单)</span>
+                            <div>
+                                <input type="text" placeholder="多条件查询路径 (节点/类型)..." style="border:1px solid #ccc; border-radius:4px; padding:4px 8px; font-size:12px; margin-right:8px; width:200px;">
+                                <button class="btn btn-primary" style="padding:4px 10px; font-size:12px;" onclick="simulateExport(this)">自定义导出明细 (.xlsx)</button>
+                            </div>
+                        </div>
+                        <div style="flex:1; padding:10px; overflow-y:auto; background:#fff;">
+                            <table class="data-table">
+                                <thead>
+                                    <tr><th>起点 Node</th><th>传导跳数</th><th>传递路径轨迹 (中间节点与机构)</th><th>关联强度评分</th><th>关系类型标注</th><th>操作</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td>张维理</td><td>3 跳</td><td>[起点] -> 论文合著 -> 李XX (某机构) -> 共同申请专利 -> 王Y (某能源公司)</td><td><span style="color:var(--success-color);">A级 (强关联)</span></td><td><span class="tag">产学研综合传递</span></td><td><a href="#" onclick="showEvidenceDetail('王Y (某能源公司)', '产学研'); return false;" style="color:var(--primary-color);">查看全量证据</a></td></tr>
+                                    <tr><td>张维理</td><td>4 跳</td><td>[起点] -> 同门导师 -> 张三 -> 等4位学者 -> 赵四 (某能源公司高管)</td><td><span style="color:var(--warning-color);">B级 (中等)</span></td><td><span class="tag">师门人脉扩散</span></td><td><a href="#" onclick="showEvidenceDetail('王Y (某能源公司)', '产学研'); return false;" style="color:var(--primary-color);">查看全量证据</a></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- MODULE 3: 2-Point Collaboration Value Evaluation -->
+        <!-- ============================================== -->
+        <div class="view-container" id="m3">
+             <div class="control-panel">
+                <div class="panel-header-sm">双节点耦合价值演算器</div>
+                <div class="panel-body-scroll">
+                    <div class="form-group">
+                        <label class="form-label">考察实体 Node A</label>
+                        <input type="text" class="form-input" value="王强 (研究员)">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">比对实体 Node B</label>
+                        <input type="text" class="form-input" value="刘博 (A公司研发总监)">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">合作轨迹追溯时间轴</label>
+                        <div style="display:flex; gap:10px;">
+                            <input type="date" class="form-input" value="2005-01-01">
+                            <input type="date" class="form-input" value="2024-01-01">
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" style="margin-top:10px;" onclick="simulateToolAction(this, ['chart-m3-line', 'chart-m3-radar', 'chart-m3-graph'])">归集相关成果并测算协同度量</button>
+                    <button class="btn btn-outline" style="margin-top:8px; width:100%;" onclick="simulateExport(this)">导出结构化合作成果清单 (.csv)</button>
+                    
+                    <div style="margin-top:20px; border-top:1px solid #eee; padding-top:15px;">
+                        <h4 style="font-size:13px; margin-bottom:10px;">成果产出位次分析 (一作/通讯)</h4>
+                        <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:5px;">
+                            <span>Node A 主导成果(一作)占比:</span><strong>65%</strong>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:5px;">
+                            <span>Node B 主导成果(一作)占比:</span><strong>25%</strong>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:5px;">
+                            <span>平权/共同挂名占比:</span><strong>10%</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="canvas-area split-panel">
+                <div class="split-top" style="display:flex; background:#fff;">
+                    <div style="flex:1; border-right:1px solid var(--border-color); padding:10px; position:relative;"><div id="chart-m3-line" class="chart-wrapper"></div></div>
+                    <div style="flex:1; padding:10px; position:relative;"><div id="chart-m3-radar" class="chart-wrapper"></div></div>
+                </div>
+                <div class="split-bottom">
+                    <div class="panel-header-sm" style="background:#fff; border-bottom:1px solid #eee; position:absolute; top:0; left:0; width:100%; z-index:10;">底层协同事件拓扑图谱</div>
+                    <div style="width:100%; height:100%; position:relative;"><div id="chart-m3-graph" class="chart-wrapper"></div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- MODULE 4: Colleague Relationship -->
+        <!-- ============================================== -->
+        <div class="view-container" id="m4">
+            <div class="control-panel">
+                <div class="panel-header-sm">特定时空下的同事推理构建</div>
+                <div class="panel-body-scroll">
+                    <div class="form-group">
+                        <label class="form-label">焦点专家</label>
+                        <input type="text" class="form-input" value="李院士">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">特定履历时段 (Time Constraint)</label>
+                        <select class="form-select">
+                            <option>任职 [国家纳米科学中心] 时期 (2012-2018)</option>
+                            <option>任职 [某材料所] 时期 (2019-至今)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">机构条件限制 (Org Condition)</label>
+                        <input type="text" class="form-input" value="研究中心、实验组、企业高管层">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">任职时间交集匹配阈值 (月数)</label>
+                        <input type="range" min="1" max="60" value="6" style="width: 100%;">
+                        <div style="font-size:12px; color:var(--text-muted); text-align:right;">>= 6 个月</div>
+                    </div>
+                    <button class="btn btn-primary" style="margin-top:10px;" onclick="simulateToolAction(this, 'chart-m4')">回溯同事关系并生成结构化清单</button>
+                    
+                    <div style="margin-top:20px;">
+                        <span class="tag tag-warning">算法逻辑声明</span>
+                        <p style="font-size:12px; color:var(--text-muted); line-height:1.6; margin-top:5px;">
+                            系统通过抽取专家在《2012-2018年》阶段发布的全部专利申请人属性、论文附属机构(Affiliation)以及基金团队组合，结合企业工商变更历史数据库，利用重叠时间轴进行聚类，推理重构出当时的同期同门及共事网络。
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="canvas-area">
+                <div class="canvas-toolbar">
+                    <span style="font-size:13px; font-weight:500;">图谱展示模式:</span>
+                    <button class="btn btn-outline" style="padding:4px 10px; font-size:12px; background:#ecf5ff; border-color:#c6e2ff; color:var(--primary-color)">星系图 (Galaxy)</button>
+                </div>
+                <div class="canvas-content" style="display:flex; flex-direction:column;">
+                    <div style="flex:2; position:relative;"><div id="chart-m4" class="chart-wrapper"></div></div>
+                    <div style="flex:1; border-top:1px solid var(--border-color); background:#fafafa; display:flex; flex-direction:column;">
+                        <div style="padding:8px 15px; border-bottom:1px solid #ddd; display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-size:13px; font-weight:bold; color:#333;">同事关系推理构建结果 (结构化清单)</span>
+                            <div>
+                                <input type="text" placeholder="多条件组合查询 (背景/机构)..." style="border:1px solid #ccc; border-radius:4px; padding:4px 8px; font-size:12px; margin-right:8px; width:180px;">
+                                <button class="btn btn-primary" style="padding:4px 10px; font-size:12px;" onclick="simulateExport(this)">导出明细 (.xlsx)</button>
+                            </div>
+                        </div>
+                        <div style="flex:1; padding:10px; overflow-y:auto; background:#fff;">
+                            <table class="data-table">
+                                <thead>
+                                    <tr><th>学者姓名</th><th>所在机构与背景</th><th>交集任职时段 (月数)</th><th>匹配信度</th><th>操作</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td>李维 研究员</td><td>纳米科学中心结构材料组</td><td>2013.09 - 2016.07 (34个月)</td><td><span style="color:var(--success-color);">98%</span></td><td><a href="#" onclick="showEvidenceDetail('王Y (某能源公司)', '产学研'); return false;" style="color:var(--primary-color);">检索期间协作成果</a></td></tr>
+                                    <tr><td>吴华 高管</td><td>某材料所实验室</td><td>2014.11 - 2015.12 (13个月)</td><td><span style="color:var(--success-color);">92%</span></td><td><a href="#" onclick="showEvidenceDetail('王Y (某能源公司)', '产学研'); return false;" style="color:var(--primary-color);">检索期间协作成果</a></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- MODULE 5: Alumni Relationship -->
+        <!-- ============================================== -->
+        <div class="view-container" id="m5">
+            <div class="control-panel">
+                <div class="panel-header-sm">教育背景与校友聚类挖掘</div>
+                <div class="panel-body-scroll">
+                    <div class="form-group">
+                        <label class="form-label">焦点专家</label>
+                        <input type="text" class="form-input" value="Dr. Chen">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">学历/圈层维度配置</label>
+                        <div class="checkbox-group">
+                            <label class="checkbox-label"><input type="checkbox" checked> 博士/博士后阶段圈层 (深关联)</label>
+                            <label class="checkbox-label"><input type="checkbox" checked> 硕士阶段圈层</label>
+                            <label class="checkbox-label"><input type="checkbox"> 本科阶段圈层 (泛关联)</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">院校就读时间交集阈值 (至少)</label>
+                        <input type="range" min="1" max="48" value="12" style="width: 100%;">
+                        <div style="font-size:12px; color:var(--text-muted); text-align:right;">>= 12 个月 (1年)</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">同门/导师及院系严格约束</label>
+                        <label class="checkbox-label" style="margin-top:5px; color:var(--primary-color)"><input type="checkbox" checked> 仅抽取同一院系及导师的“师出同门”子集</label>
+                    </div>
+                    <button class="btn btn-primary" style="margin-top:10px;" onclick="simulateToolAction(this, 'chart-m5')">生成校友群落及结构化明细清单</button>
+                </div>
+            </div>
+            <div class="canvas-area">
+                <div class="canvas-toolbar">
+                    <span style="font-size:13px; font-weight:500;">图谱展示模式:</span>
+                    <button class="btn btn-outline" style="padding:4px 10px; font-size:12px; background:#ecf5ff; border-color:#c6e2ff; color:var(--primary-color)">群落聚类星图 (Cluster)</button>
+                </div>
+                <div class="canvas-content" style="display:flex; flex-direction:column;">
+                    <div style="flex:2; position:relative;"><div id="chart-m5" class="chart-wrapper"></div></div>
+                    <div style="flex:1; border-top:1px solid var(--border-color); background:#fafafa; display:flex; flex-direction:column;">
+                        <div style="padding:8px 15px; border-bottom:1px solid #ddd; display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-size:13px; font-weight:bold; color:#333;">校友关系精准细分 (结构化清单)</span>
+                            <div>
+                                <input type="text" placeholder="多条件组合检索 (分类/院系)..." style="border:1px solid #ccc; border-radius:4px; padding:4px 8px; font-size:12px; margin-right:8px; width:180px;">
+                                <button class="btn btn-primary" style="padding:4px 10px; font-size:12px;" onclick="simulateExport(this)">导出所有记录 (.csv)</button>
+                            </div>
+                        </div>
+                        <div style="flex:1; padding:10px; overflow-y:auto; background:#fff;">
+                            <table class="data-table">
+                                <thead>
+                                    <tr><th>关系细分类别</th><th>校友信息</th><th>同源院系与阶段</th><th>就读时空交集</th><th>相关导师</th><th>操作</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td><span class="tag tag-success">直系师兄弟</span></td><td>陈丹 博士</td><td>某C9高校 - 计算机体系结构组</td><td><span style="color:var(--success-color);">2.5年 (强烈重叠)</span></td><td>张强 院士 (第一匹配)</td><td><a href="#" onclick="showEvidenceDetail('王Y (某能源公司)', '产学研'); return false;" style="color:var(--primary-color);">核查后续职业互动</a></td></tr>
+                                    <tr><td><span class="tag tag-danger">强关联院友</span></td><td>王晓敏</td><td>某C9高校 - 某交叉实验室</td><td><span style="color:var(--warning-color);">1.2年 (部分重叠)</span></td><td>李教授</td><td><a href="#" onclick="showEvidenceDetail('王Y (某能源公司)', '产学研'); return false;" style="color:var(--primary-color);">核查学术互动信息</a></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- MODULE 6: Paper Collab & PageRank Core Mining -->
+        <!-- ============================================== -->
+        <div class="view-container" id="m6">
+            <div class="control-panel" style="width:360px;">
+                <div class="panel-header-sm">引证网与中心度算法实验室 (PR)</div>
+                <div class="panel-body-scroll">
+                    <!-- New Bulk Import / Selection UI -->
+                    <div class="form-group" style="border: 1px dashed var(--primary-color); padding: 10px; border-radius: 4px; background: rgba(64,158,255,0.05);">
+                        <label class="form-label" style="color: var(--primary-color); margin-bottom: 5px;">核心节点定位选定 (必选)</label>
+                        
+                        <div style="font-size: 12px; margin-bottom: 8px;">方式一：精准定位 (支持多选)</div>
+                        <div style="display:flex; gap: 8px; margin-bottom: 12px;">
+                            <input type="text" class="form-input" placeholder="输入学者唯一ID或姓名" id="node-input" style="flex: 1;">
+                            <button class="btn btn-primary" style="padding: 6px 12px;" onclick="addNodeTag()">确定</button>
+                        </div>
+                        <div id="selected-nodes" style="display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 12px;">
+                            <span class="tag">David Silver <span style="cursor:pointer; margin-left:4px;">×</span></span>
+                            <span class="tag">Richard S. Sutton <span style="cursor:pointer; margin-left:4px;">×</span></span>
+                        </div>
+
+                        <div style="font-size: 12px; margin-bottom: 8px;">方式二：大批量导入定点</div>
+                        <button class="btn btn-outline" style="width: 100%; border-style: dashed;" onclick="simulateImport(this)">
+                            <span style="font-size: 16px;">+</span> 批量导入学者清单选定 (.csv/.xlsx)
+                        </button>
+                    </div>
+                
+                    <div class="form-group">
+                        <label class="form-label">限定主题网络 / 子图实体池</label>
+                        <input type="text" class="form-input" value="领域: 强化学习 (Reinforcement Learning)">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">图谱拓扑控制 (Sub-graph Size)</label>
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-size:12px;">限定扩展跳数</span>
+                            <select class="form-select" style="width:120px"><option>2跳</option><option>3跳 (重度)</option></select>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+                            <span style="font-size:12px;">过滤孤立点 (连通分量 < X)</span>
+                            <input type="number" class="form-input" style="width:120px" value="5">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">激活图聚合算法计算矩阵</label>
+                        <label class="checkbox-label" style="font-weight:bold; color:#e6a23c;"><input type="checkbox" checked> 执行 PageRank 核心度算法打分</label>
+                    </div>
+                    <button class="btn btn-primary" style="margin-top:10px;" onclick="simulateToolAction(this, 'chart-m6')">执行大规模图计算调度</button>
+                    
+                    <div style="margin-top:15px;">
+                        <div style="font-size:13px; font-weight:bold; margin-bottom:10px;">基于PR算法推断的绝对领军核心:</div>
+                        <table style="background:#fff; border:1px solid #eee;">
+                            <tr style="background:#f5f7fa"><th>名次</th><th>网络节点中心性 (PR Score)</th></tr>
+                            <tr><td>1. David Silver (DeepMind)</td><td><span class="tag tag-danger">99.88</span></td></tr>
+                            <tr><td>2. Richard S. Sutton</td><td><span class="tag tag-warning">98.50</span></td></tr>
+                            <tr><td>3. Pieter Abbeel (UCB)</td><td><span class="tag">95.42</span></td></tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="canvas-area">
+                <div class="canvas-content"><div id="chart-m6" class="chart-wrapper"></div></div>
+                <div class="time-slider-container">
+                    <div style="font-size:12px; font-weight:bold; margin-bottom:5px;">发文合作动态追踪溯源 (Time Slice Window)</div>
+                    <div style="display:flex; align-items:center; gap:20px;">
+                        <span style="font-size:12px; color:var(--text-muted)">2010</span>
+                        <input type="range" class="form-range" style="flex:1" min="2010" max="2024" value="2024">
+                        <span style="font-size:12px; font-weight:bold; color:var(--primary-color)">2024 年全貌展示</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- MODULE 7: Enterprise Innovation Radar -->
+        <!-- ============================================== -->
+        <div class="view-container" id="m7">
+            <div class="control-panel">
+                <div class="panel-header-sm">科技企业创新生态全景钻取</div>
+                <div class="panel-body-scroll">
+                    <div class="form-group">
+                        <label class="form-label">指定分析标的企业</label>
+                        <input type="text" class="form-input" value="科大讯飞股份有限公司">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">全景图数据挂靠维度 (可多选定制)</label>
+                        <div class="checkbox-group">
+                            <label class="checkbox-label"><input type="checkbox" checked> <span style="color:#409eff">●</span> 自主知识产权 (专利/软著权族系群)</label>
+                            <label class="checkbox-label"><input type="checkbox" checked> <span style="color:#67c23a">●</span> 跨界纵向合作研发网络 (高校Lab)</label>
+                            <label class="checkbox-label"><input type="checkbox" checked> <span style="color:#e6a23c">●</span> 外延挂靠权威专家矩阵 (科技顾问)</label>
+                            <label class="checkbox-label"><input type="checkbox"> <span style="color:#f56c6c">●</span> 创投资本图谱及子公司</label>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" style="margin-top:10px;" onclick="simulateToolAction(this, 'chart-m7')">挂载全维度节点生成企业画像</button>
+
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:20px;">
+                        <div class="data-card" style="padding:10px"><div style="font-size:12px;color:#999">穿透学术节点总数</div><div style="font-size:18px;font-weight:bold;color:var(--primary-color)">4,502</div></div>
+                        <div class="data-card" style="padding:10px"><div style="font-size:12px;color:#999">底层核心专利权族</div><div style="font-size:18px;font-weight:bold;color:var(--success-color)">12k+</div></div>
+                    </div>
+                </div>
+            </div>
+            <div class="canvas-area">
+                <div class="canvas-content"><div id="chart-m7" class="chart-wrapper"></div></div>
+            </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- MODULE 8: Top Events Impact Propagation -->
+        <!-- ============================================== -->
+        <div class="view-container" id="m8">
+            <div class="control-panel" style="width:380px;">
+                <div class="panel-header-sm">大事件脉冲及影响网络波及分析</div>
+                <div class="panel-body-scroll">
+                    <div class="form-group">
+                        <label class="form-label">监听产业链切片</label>
+                        <select class="form-select"><option>第三代半导体材料</option><option>固态电池技术</option></select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">事件类型截取 (Event Filter)</label>
+                        <div style="display:flex; gap:10px;">
+                            <select class="form-select"><option>底层重大技术突破</option><option>现象级新规/政策出台</option><option>巨额投融资并购</option></select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">TOP-N 高价值事件动态拦截阈值 (N 取值)</label>
+                        <input type="range" class="form-range" min="1" max="100" value="10" style="width:100%;">
+                        <div style="font-size:12px; color:var(--text-muted); text-align:right;">前 10 名核心事件</div>
+                    </div>
+                    
+                    <div style="margin-top:10px;">
+                        <h4 style="font-size:13px; margin-bottom:10px; border-bottom:1px solid #eee; padding-bottom:5px;">今日TOP事件流监控：</h4>
+                        <!-- Alert list -->
+                        <div style="padding:10px; border-left:3px solid var(--danger-color); background:#fff; margin-bottom:10px; box-shadow:0 1px 3px rgba(0,0,0,0.05); cursor:pointer;">
+                            <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                                <span class="tag tag-danger" style="margin:0">技术突破</span>
+                                <span style="font-size:12px; color:#aaa">2小时前 - 捕获至 Nature 预印</span>
+                            </div>
+                            <div style="font-weight:500; font-size:14px; margin-bottom:5px;">国产“室温超导”材料引发震荡</div>
+                            <div style="font-size:12px; color:var(--text-muted)">产业链影响力指数: <strong style="color:var(--danger-color)">Max=9.8</strong></div>
+                        </div>
+                        <div style="padding:10px; border-left:3px solid var(--warning-color); background:#fff; margin-bottom:10px; box-shadow:0 1px 3px rgba(0,0,0,0.05); cursor:pointer;">
+                            <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                                <span class="tag tag-warning" style="margin:0">大额融资</span><span style="font-size:12px; color:#aaa">14小时前 - 捕获至 工商变更库</span>
+                            </div>
+                            <div style="font-weight:500; font-size:14px; margin-bottom:5px;">A公司独家完成50亿元A轮融资入局碳化硅</div>
+                            <div style="font-size:12px; color:var(--text-muted)">产业链影响力指数: <strong style="color:var(--warning-color)">Lv.6</strong></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="canvas-area">
+                <div class="canvas-toolbar">
+                    <span style="font-size:13px; font-weight:500; color:var(--danger-color)">右侧画布展示：全维度产业链影响多级涟漪传播。</span>
+                </div>
+                <div class="canvas-content" style="display:flex; flex-direction:column; background:#1e1e1e;">
+                    <div style="flex:2; position:relative;"><div id="chart-m8" class="chart-wrapper"></div></div>
+                    <div style="flex:1; border-top:1px solid #444; background:#2b2b2b; display:flex; flex-direction:column;">
+                        <div style="padding:8px 15px; border-bottom:1px solid #444; display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-size:13px; font-weight:bold; color:#f0f0f0;">TOP-N 高影响力事件结构化预测清单</span>
+                            <div>
+                                <input type="text" placeholder="多条件组合检索事件..." style="border:1px solid #555; background:#1e1e1e; color:#fff; border-radius:4px; padding:4px 8px; font-size:12px; margin-right:8px; width:180px;">
+                                <button class="btn btn-primary" style="padding:4px 10px; font-size:12px;" onclick="simulateExport(this)">导出全量研究报告 (.pdf/.xlsx)</button>
+                            </div>
+                        </div>
+                        <div style="flex:1; padding:10px; overflow-y:auto; color:#dcdcdc;">
+                            <table class="data-table" style="background:#2b2b2b;">
+                                <thead>
+                                    <tr><th style="border-right:1px solid #444;">级别与分类</th><th style="border-right:1px solid #444;">触发重大事件</th><th style="border-right:1px solid #444;">直接冲击技术路线/环节</th><th>预警风险与机遇研判结果</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td style="border-bottom:1px solid #444;border-right:1px solid #444;"><span class="tag tag-danger">S级-底层突破</span></td>
+                                        <td style="border-bottom:1px solid #444;border-right:1px solid #444;">国产室温超导证实量产可能</td>
+                                        <td style="border-bottom:1px solid #444;border-right:1px solid #444;">电力传输、可控核聚变耗材研发</td>
+                                        <td style="border-bottom:1px solid #444;"><span style="color:#f56c6c;">风险预测：传统特高压装备市场面临结构性淘汰周期。</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="border-bottom:1px solid #444;border-right:1px solid #444;"><span class="tag tag-warning">A级-资本重构</span></td>
+                                        <td style="border-bottom:1px solid #444;border-right:1px solid #444;">某头部企业全资收购碳化硅晶圆厂</td>
+                                        <td style="border-bottom:1px solid #444;border-right:1px solid #444;">新能源车电驱模块、光伏逆变器</td>
+                                        <td style="border-bottom:1px solid #444;"><span style="color:#e6a23c;">机遇提示：二线品牌有望承接溢出订单，建议重点招商。</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- MODULE 9: Industry Chain Macro Panorama -->
+        <!-- ============================================== -->
+        <div class="view-container" id="m9">
+            <div class="control-panel">
+                <div class="panel-header-sm">产业全景知识计算与宏观沙盘</div>
+                <div class="panel-body-scroll">
+                    <div class="form-group">
+                        <label class="form-label">调取的宏观产业字典库</label>
+                        <select class="form-select"><option>新能源汽车全生命周期产业链</option><option>航空航天高端制造</option></select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">图谱拓扑控制台 (Visualization Customization)</label>
+                        <label class="checkbox-label" style="font-size:12px; margin-top:5px;"><input type="checkbox" checked> 采用强力 Hierarchy 分层布局 (上/中/下游对齐)</label>
+                        <label class="checkbox-label" style="font-size:12px;"><input type="checkbox"> 折叠最底层的叶子节点 (降低渲染压力)</label>
+                        <label class="checkbox-label" style="font-size:12px;" id="fusion-toggle-label"><input type="checkbox" checked onchange="toggleScholarFusion(this.checked)"> 融合渲染科研人才/实验室节点 (跨域融合)</label>
+                        <label class="checkbox-label" style="font-size:12px;"><input type="checkbox" checked> 开启跨越层级的数据孤岛/潜规则合作连线</label>
+                    </div>
+                    <button class="btn btn-primary" style="margin-top:10px;" onclick="simulateToolAction(this, 'chart-m9')">宏观图景上帝渲染</button>
+
+                    <div style="margin-top:20px; font-size:12px; line-height:1.6; color:#777; padding:10px; background:#f9f9f9; border-radius:4px;">
+                        <strong>技术与标书对标说明：</strong><br>
+                        本沙盘不仅渲染了企业，更将底层的《千万级学术论著特征体系》、《数百万专利数据转化实体》融合进产业链的中游结构，实现了标书所要求的“俯瞰产业商业结构，下钻至核心科研基本面”的设计要求。
+                    </div>
+                </div>
+            </div>
+            <div class="canvas-area">
+                <div class="canvas-content"><div id="chart-m9" class="chart-wrapper"></div></div>
+            </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- MODULE UPLOAD: User Data Upload -->
+        <!-- ============================================== -->
+        <div class="view-container" id="mUpload">
+            <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; background:linear-gradient(135deg, #f5f7fa 0%, #e8f5e9 100%); padding:40px;">
+                <div style="font-size:48px; margin-bottom:20px;">⬆️</div>
+                <h2 style="font-size:22px; color:var(--text-heading); margin-bottom:8px;">自定义数据上传与图谱生成</h2>
+                <p style="color:var(--text-muted); margin-bottom:30px; max-width:500px; text-align:center; line-height:1.8;">上传您自己的数据文件，系统自动识别实体与关系，生成专属知识图谱并与平台数据融合分析。</p>
+                <div id="upload-dropzone" style="width:100%; max-width:550px; border:2px dashed #c0c4cc; border-radius:12px; padding:50px 30px; text-align:center; cursor:pointer; transition:all 0.3s; background:#fff;" onclick="simulateUpload()" onmouseover="this.style.borderColor='var(--primary-color)';this.style.background='#f0f7ff'" onmouseout="this.style.borderColor='#c0c4cc';this.style.background='#fff'">
+                    <div style="font-size:36px; margin-bottom:15px;">📂</div>
+                    <p style="font-size:15px; color:var(--text-heading); margin-bottom:8px;">点击或拖拽文件到此区域上传</p>
+                    <p style="font-size:13px; color:var(--text-muted);">支持 Excel (.xlsx) · CSV · JSON · RDF/OWL · 最大 200MB</p>
+                </div>
+                <div style="display:flex; gap:15px; margin-top:20px;">
+                    <span class="tag" style="padding:6px 14px;">示例：学者列表.xlsx</span>
+                    <span class="tag" style="padding:6px 14px;">示例：专利数据.csv</span>
+                    <span class="tag" style="padding:6px 14px;">示例：企业关系.json</span>
+                </div>
+                <!-- Upload Result (hidden initially) -->
+                <div id="upload-result" style="display:none; width:100%; max-width:550px; margin-top:25px; background:#fff; border-radius:12px; box-shadow:0 4px 20px rgba(0,0,0,0.1); padding:25px;">
+                    <h3 style="color:var(--text-heading); margin-bottom:12px;">✅ 数据解析完成</h3>
+                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:15px;">
+                        <div class="data-card"><div class="data-card-title">识别实体</div><div class="data-card-value" style="font-size:20px;">328</div></div>
+                        <div class="data-card"><div class="data-card-title">抽取关系</div><div class="data-card-value" style="font-size:20px;">1,247</div></div>
+                        <div class="data-card"><div class="data-card-title">融合匹配</div><div class="data-card-value" style="font-size:20px;">89%</div></div>
+                    </div>
+                    <button class="btn btn-primary" style="width:100%;" onclick="document.querySelector('.nav-item[data-target=m1]').click()">🔍 进入图谱分析</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- MODULE AI: AI Smart Report Generation -->
+        <!-- ============================================== -->
+        <div class="view-container" id="mAI">
+            <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; background:linear-gradient(135deg, #f5f7fa 0%, #e4ecf7 100%); padding:40px;">
+                <div style="font-size:48px; margin-bottom:20px;">🤖</div>
+                <h2 style="font-size:22px; color:var(--text-heading); margin-bottom:8px;">知识图谱 AI 智能报告引擎</h2>
+                <p style="color:var(--text-muted); margin-bottom:30px; max-width:500px; text-align:center; line-height:1.8;">用自然语言输入您想调查的对象，系统自动识别实体类型（学者/企业/产业链），调度全部相关模块进行深度挖掘，一键生成完备的结构化报告。</p>
+                <div style="display:flex; gap:10px; width:100%; max-width:600px; margin-bottom:25px;">
+                    <input type="text" class="form-input" id="ai-search-input" placeholder="例如：张维理 / 科大讯飞 / 新能源汽车产业链" style="flex:1; padding:14px 18px; font-size:15px; border-radius:8px; box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+                    <button class="btn btn-primary" style="padding:14px 28px; border-radius:8px; font-size:15px;" onclick="simulateAIReport()">🔍 深度挖掘</button>
+                </div>
+                <div style="display:flex; gap:15px; margin-bottom:30px;">
+                    <span class="tag" style="cursor:pointer; padding:6px 14px;" onclick="document.getElementById('ai-search-input').value='张维理 (清华大学)';">👤 示例：学者查询</span>
+                    <span class="tag" style="cursor:pointer; padding:6px 14px;" onclick="document.getElementById('ai-search-input').value='科大讯飞股份有限公司';">🏭 示例：企业查询</span>
+                    <span class="tag" style="cursor:pointer; padding:6px 14px;" onclick="document.getElementById('ai-search-input').value='第三代半导体材料';">🗺 示例：产业链查询</span>
+                </div>
+                <!-- AI Report Result Area (initially hidden) -->
+                <div id="ai-report-result" style="display:none; width:100%; max-width:750px; background:#fff; border-radius:12px; box-shadow:0 4px 25px rgba(0,0,0,0.1); padding:30px; text-align:left; max-height:50vh; overflow-y:auto;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                        <h3 style="color:var(--text-heading);" id="ai-report-title">📊 报告生成中...</h3>
+                        <button class="btn btn-primary" style="padding:6px 16px; font-size:13px;" onclick="simulateExport(this)">导出报告 (.pdf)</button>
+                    </div>
+                    <div id="ai-report-body" style="font-size:14px; line-height:2; color:var(--text-main);">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- MODULE REPORT: Report Workbench -->
+        <!-- ============================================== -->
+        <div class="view-container" id="mReport">
+            <div style="flex:1; display:flex; flex-direction:column; padding:25px; background:#f5f7fa; overflow-y:auto;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                    <div>
+                        <h2 style="font-size:20px; color:var(--text-heading); margin-bottom:5px;">📋 报告工作台</h2>
+                        <p style="color:var(--text-muted); font-size:13px;">汇总各模块的铉选结论，由 AI 自动整合生成综合报告</p>
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                        <button class="btn btn-outline" onclick="clearPinnedItems()">🗑 清空全部</button>
+                        <button class="btn btn-primary" onclick="simulateAISummary(this)">🤖 AI 整合生成报告</button>
+                    </div>
+                </div>
+                <div id="pinned-items-container" style="display:flex; flex-direction:column; gap:12px;">
+                    <div style="text-align:center; padding:60px 20px; color:var(--text-muted); font-size:14px;">
+                        暂无铉选内容。请在各分析模块中点击 <strong>"📌 铉选到报告"</strong> 按钮收集分析结论。
+                    </div>
+                </div>
+                <!-- AI Summary Output -->
+                <div id="ai-summary-output" style="display:none; margin-top:25px; background:#fff; border-radius:10px; box-shadow:0 2px 15px rgba(0,0,0,0.08); padding:25px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                        <h3 style="color:var(--text-heading);">📝 AI 综合分析报告</h3>
+                        <button class="btn btn-primary" style="padding:6px 16px; font-size:13px;" onclick="simulateExport(this)">导出报告 (.docx)</button>
+                    </div>
+                    <div id="ai-summary-body" style="font-size:14px; line-height:2; color:var(--text-main);"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Navigation Logic ---
+        const navItems = document.querySelectorAll('.nav-item[data-target]');
+        const views = document.querySelectorAll('.view-container');
+        const topTitle = document.getElementById('top-title');
+        const charts = {};
+
+        navItems.forEach(item => {
+            item.addEventListener('click', () => {
+                navItems.forEach(el => el.classList.remove('active'));
+                item.classList.add('active');
+                
+                views.forEach(v => v.classList.remove('active'));
+                const targetId = item.getAttribute('data-target');
+                const targetView = document.getElementById(targetId);
+                targetView.classList.add('active');
+                topTitle.innerText = item.innerText.replace(/[^\u4e00-\u9fa5\w\s()（）/]/g, '').trim(); // Remove emoji, keep text
+
+                // Resize echarts lazily
+                setTimeout(() => {
+                    const doms = targetView.querySelectorAll('.chart-wrapper');
+                    doms.forEach(dom => {
+                        if (charts[dom.id]) charts[dom.id].resize();
+                    });
+                }, 100);
+            });
+        });
+
+        const initEchart = (id, option) => {
+            const dom = document.getElementById(id);
+            if (!dom) return;
+            const chart = echarts.init(dom);
+            chart.setOption(option);
+            charts[id] = chart;
+            return chart;
+        };
+
+        const colorMap = {
+            blue: '#409eff', green: '#67c23a', orange: '#e6a23c', red: '#f56c6c', gray: '#909399', darkbg: '#1e1e1e'
+        };
+
+        // ==============================================
+        // ECHARTS MOCK DATA GENERATION (HIGH DENSITY & ACCURACY)
+        // ==============================================
+
+        // M1: Dense Force Graph 1-degree
+        const m1Nodes = [{name: '中心节点: 张维理', symbolSize: 60, itemStyle:{color: colorMap.blue, shadowBlur:20, shadowColor:'rgba(64,158,255,0.7)', borderColor:'#fff', borderWidth:3}}];
+        const m1Links = [];
+        for(let i=1; i<150; i++){
+            let type = Math.random();
+            let c = type>0.7 ? colorMap.orange : (type>0.4 ? colorMap.green : '#dcdfe6');
+            let size = Math.random()*15+5;
+            m1Nodes.push({name: '实体_'+i, symbolSize: size, itemStyle: {color: c, opacity:0.8}});
+            m1Links.push({source:'中心节点: 张维理', target:'实体_'+i, lineStyle: {width: 1, color: c, opacity: type>0.7 ? 0.6: 0.2}});
+        }
+        initEchart('chart-m1', { tooltip:{}, series:[{type:'graph', layout:'force', force:{repulsion:100, edgeLength:[50,200]}, roam:true, nodes:m1Nodes, links:m1Links}] });
+
+        // M2: Multi-hop Path Directed
+        const m2Nodes = [
+            {id:'A', name:'张维理', x:100, y:300, symbolSize:50, itemStyle:{color:colorMap.blue}},
+            {id:'B1', name:'中继学者B1', x:300, y:200, symbolSize:30},{id:'B2', name:'联合挂靠企业B2', x:300, y:400, symbolSize:35, itemStyle:{color:colorMap.green}},
+            {id:'C1', name:'重点实验室C1', x:500, y:200, symbolSize:35, itemStyle:{color:colorMap.orange}},{id:'C2', name:'独立前高管C2', x:500, y:400, symbolSize:30},
+            {id:'D1', name:'专利集群D1', x:700, y:300, symbolSize:40, itemStyle:{color:colorMap.gray}},
+            {id:'E', name:'某新能源企业', x:900, y:300, symbolSize:60, itemStyle:{color:colorMap.red, shadowBlur:20, shadowColor:colorMap.red}}
+        ];
+        const m2Links = [
+            {source:'A', target:'B1', label:{show:true, formatter:'论文合作'}},{source:'A', target:'B2', label:{show:true, formatter:'产学研合作'}},
+            {source:'B1', target:'C1', label:{show:true, formatter:'同门学者'}},{source:'B2', target:'C2', label:{show:true, formatter:'股权交叉'}},
+            {source:'B2', target:'C1', lineStyle:{type:'dashed'}},
+            {source:'C1', target:'D1', label:{show:true, formatter:'孵化专利族'}},{source:'C2', target:'D1', label:{show:true, formatter:'注资买断'}},
+            {source:'D1', target:'E', label:{show:true, formatter:'底层护城河技术'}, lineStyle:{width:3, color:colorMap.red}}
+        ];
+        // add background noise
+        for(let i=0; i<30; i++) {
+            m2Nodes.push({id:'noise'+i, name:'', x:Math.random()*800+100, y:Math.random()*600, symbolSize:5, itemStyle:{color:'#eee'}});
+        }
+        initEchart('chart-m2', { tooltip:{}, series:[{type:'graph', layout:'none', roam:true, edgeSymbol:['circle', 'arrow'], lineStyle:{curveness:0.2, color:'#409eff'}, label:{show:true, position:'bottom', color:'#333'}, nodes:m2Nodes, links:m2Links}] });
+
+        // M3: Compare Charts
+        initEchart('chart-m3-line', { tooltip:{trigger:'axis'}, title:{text:'历年合作密度的演进轨迹', left:'center', textStyle:{fontSize:13, fontWeight:'normal'}},
+            xAxis:{type:'category', boundaryGap:false, data:['2015','2016','2017','2018','2019','2020','2021','2022','2023','2024']}, yAxis:{type:'value'},
+            series:[{name:'共同合作产出指标', type:'line', areaStyle:{opacity:0.2}, data:[0,1,3,2,8,25,18,32,14,20], itemStyle:{color:colorMap.blue}, smooth:true}] });
+        initEchart('chart-m3-radar', { title:{text:'联合成果底层组合要素解构', left:'center', textStyle:{fontSize:13, fontWeight:'normal'}}, radar:{indicator:[{name:'合著顶级会议', max:100},{name:'联合申请的发明专利', max:100},{name:'共享重点研发项目', max:100},{name:'非一作松散挂名', max:100}]},
+            series:[{type:'radar', data:[{value:[60,95,80,20], name:'重合价值', areaStyle:{color:'rgba(103,194,58,0.3)'}, itemStyle:{color:colorMap.green}}]}] });
+        
+        let m3gNodes = [{name:'Node A', symbolSize:40, itemStyle:{color:colorMap.blue}}, {name:'Node B', symbolSize:40, itemStyle:{color:colorMap.orange}}];
+        let m3gLinks = [];
+        for(let i=1;i<=20;i++){
+            let c = Math.random()>0.5 ? colorMap.green : colorMap.gray;
+            m3gNodes.push({name:'共建项目/专利'+i, symbolSize:15, itemStyle:{color:c}});
+            m3gLinks.push({source:'Node A', target:'共建项目/专利'+i});
+            m3gLinks.push({source:'Node B', target:'共建项目/专利'+i});
+        }
+        initEchart('chart-m3-graph', { series:[{type:'graph', layout:'force', force:{repulsion:80}, roam:true, nodes:m3gNodes, links:m3gLinks}] });
+
+        // M4: Colleague Force Graph
+        const m4Nodes = [{name:'李院士', symbolSize:55, itemStyle:{color:colorMap.blue}}];
+        const m4Links = [];
+        for(let i=1;i<=40;i++) {
+            let isClose = Math.random() > 0.8;
+            m4Nodes.push({name:'同期人员'+i, symbolSize:isClose?25:10, itemStyle:{color: isClose?colorMap.green:'#ccc'}});
+            m4Links.push({source:'李院士', target:'同期人员'+i, lineStyle:{width:isClose?2:1, opacity:0.5}});
+            if(Math.random()>0.7 && i>1) m4Links.push({source:'同期人员'+i, target:'同期人员'+(i-1), lineStyle:{opacity:0.2}});
+        }
+        initEchart('chart-m4', { tooltip:{}, series:[{type:'graph', layout:'force', force:{repulsion:150}, roam:true, nodes:m4Nodes, links:m4Links}]});
+
+        // M5: Alumni Cluster Graph
+        const m5Nodes = [{name:'Dr. Chen', symbolSize:60, category:0, itemStyle:{color:colorMap.blue}}, {name:'清华大学集群 (博士关联)', symbolSize:40, category:1, itemStyle:{color:colorMap.orange}}, {name:'中科大集群 (硕士关联)', symbolSize:40, category:2, itemStyle:{color:colorMap.green}}];
+        const m5Links = [{source:'Dr. Chen', target:'清华大学集群 (博士关联)', lineStyle:{width:3}}, {source:'Dr. Chen', target:'中科大集群 (硕士关联)', lineStyle:{width:3}}];
+        for(let i=1; i<=70; i++){
+            let clu = Math.random() > 0.5 ? 1 : 2;
+            let c = clu===1 ? colorMap.orange : colorMap.green;
+            m5Nodes.push({name:'校友'+i, symbolSize:Math.random()*15+5, category:clu, itemStyle:{color:c, opacity:0.7}});
+            m5Links.push({source:clu===1 ? '清华大学集群 (博士关联)':'中科大集群 (硕士关联)', target:'校友'+i, lineStyle:{opacity:0.1}});
+        }
+        initEchart('chart-m5', { tooltip:{}, series:[{type:'graph', layout:'force', force:{repulsion:100, edgeLength:[50, 150]}, roam:true, nodes:m5Nodes, links:m5Links}]});
+
+        // M6: PageRank Force Network (Size represents PR score)
+        const m6Nodes = []; const m6Links = [];
+        for(let i=0; i<100; i++){
+            let isCenter = i<3;
+            let score = isCenter ? (100 - i*2) : (Math.random()*40 + 10);
+            let c = isCenter ? colorMap.red : (score > 40 ? colorMap.orange : colorMap.blue);
+            m6Nodes.push({name:(isCenter?'领军人物':'圈内骨干')+i, symbolSize: score/1.5, itemStyle:{color:c, opacity:0.9}, label:{show:isCenter, formatter:'{b}\nPR:{c}'}, value:score.toFixed(1)});
+            if(i>3) {
+                m6Links.push({source:'领军人物'+Math.floor(Math.random()*3), target:'圈内骨干'+i, lineStyle:{opacity:0.3, width:score/20}});
+                if(Math.random()>0.7) m6Links.push({source:'圈内骨干'+i, target:'圈内骨干'+Math.floor(Math.random()*100), lineStyle:{opacity:0.1}});
+            }
+        }
+        initEchart('chart-m6', { tooltip:{formatter:'{b}: {c}'}, series:[{type:'graph', layout:'force', force:{repulsion:200, gravity:0.1}, roam:true, edgeSymbol:['none','none'], nodes:m6Nodes, links:m6Links}]});
+
+        // M7: Enterprise Tree / Graph
+        initEchart('chart-m7', { tooltip:{}, series:[{
+            type:'tree', data:[{name:'科大讯飞股份有限公司', itemStyle:{color:colorMap.blue}, children:[
+                {name:'研发与专利族群 (1.2w+枝叶)', itemStyle:{color:colorMap.green}, children:[{name:'语音识别核心集'},{name:'自然语言处理AI核'},{name:'硬件交互专利'}]},
+                {name:'高校联合科研矩阵 (节点集群)', itemStyle:{color:colorMap.orange}, children:[{name:'中科大联合通信实验室'},{name:'清华语音技术研究院'}]},
+                {name:'专家顾问支撑网 (核心智库)', itemStyle:{color:colorMap.red}, children:[{name:'吴XX 院士'},{name:'李XX 教授'}, {name:'...等 45 位顶尖学者'}]}
+            ]}], layout:'radial', symbolSize:15, label:{position:'right', fontSize:12, color:'#333', fontWeight:'bold'}, initialTreeDepth:2, lineStyle:{curveness:0.2, width:2, color:'#dcdfe6'}
+        }]});
+
+        // M8: Dark mode ripple graph
+        const m8Nodes = [{name:'爆震源:室温超导突破', symbolSize:50, itemStyle:{color:colorMap.red, shadowBlur:30, shadowColor:'red'}, label:{show:true, color:'#fff'}}];
+        const m8Links = [];
+        ['相关新锐初创A','传统电力巨权B','磁悬浮科研部'].forEach(n => {
+            m8Nodes.push({name:n, symbolSize:35, itemStyle:{color:colorMap.orange}});
+            m8Links.push({source:'爆震源:室温超导突破', target:n, lineStyle:{color:'red', width:3, opacity:0.8}, label:{show:true, formatter:'直接冲击'}});
+        });
+        for(let i=0;i<40;i++){
+            let c = Math.random()>0.5 ? colorMap.blue : '#555';
+            m8Nodes.push({name:'次级连带节点'+i, symbolSize:12, itemStyle:{color:c}});
+            m8Links.push({source:['相关新锐初创A','传统电力巨权B','磁悬浮科研部'][Math.floor(Math.random()*3)], target:'次级连带节点'+i, lineStyle:{color:colorMap.orange, opacity:0.4}});
+        }
+        initEchart('chart-m8', { backgroundColor: 'transparent', tooltip:{}, series:[{type:'graph', layout:'force', force:{repulsion:300}, roam:true, nodes:m8Nodes, links:m8Links}]});
+
+        // M9: Industry hierarchy
+        // M9: Industry hierarchy with Scholar Fusion
+        initEchart('chart-m9', {
+            tooltip:{}, 
+            legend: { 
+                data: ['上游企业', '中游企业', '下游应用', '科研人才/实验室'], 
+                bottom: 10, 
+                textStyle: {color: '#ccc'},
+                selected: {'科研人才/实验室': true}
+            },
+            series:[{
+                type:'graph', layout:'force', force:{repulsion:180, edgeLength:[100,220]}, roam:true, label:{show:true, fontSize:10},
+                categories:[{name:'上游企业'},{name:'中游企业'},{name:'下游应用'},{name:'科研人才/实验室'}],
+                nodes:[
+                    {name:'锂矿开采(上游全景)', symbolSize:45, category:0, itemStyle:{color:colorMap.orange}}, {name:'钴矿提纯', symbolSize:35, category:0, itemStyle:{color:colorMap.orange}}, 
+                    {name:'正极材料研制(中游引擎)', symbolSize:55, category:1, itemStyle:{color:colorMap.blue}}, {name:'电池封装平台', symbolSize:40, category:1, itemStyle:{color:colorMap.blue}},
+                    {name:'整车制造(下游赋能)', symbolSize:60, category:2, itemStyle:{color:colorMap.green}, label:{fontSize:13, fontWeight:'bold'}},
+                    
+                    // Cross-domain entities
+                    {name:'新材料交叉团队(学术)', symbolSize:22, category:3, itemStyle:{color:colorMap.red}},
+                    {name:'张维理教授 (技术顾问)', symbolSize:25, category:3, itemStyle:{color:colorMap.red}},
+                    {name:'固态电池联合实验室', symbolSize:28, category:3, itemStyle:{color:colorMap.red}}
+                ],
+                links:[
+                    {source:'锂矿开采(上游全景)', target:'正极材料研制(中游引擎)', lineStyle:{width:2}}, {source:'钴矿提纯', target:'正极材料研制(中游引擎)'},
+                    {source:'正极材料研制(中游引擎)', target:'电池封装平台', lineStyle:{width:3}},
+                    {source:'电池封装平台', target:'整车制造(下游赋能)', lineStyle:{width:4, color:colorMap.green}},
+                    
+                    // Cross-domain links (dashed)
+                    {source:'新材料交叉团队(学术)', target:'锂矿开采(上游全景)', label:{show:true, formatter:'技术输出'}, lineStyle:{type:'dashed', color:colorMap.red, opacity:0.6}},
+                    {source:'张维理教授 (技术顾问)', target:'正极材料研制(中游引擎)', label:{show:true, formatter:'首席顾问'}, lineStyle:{type:'dashed', color:colorMap.red, opacity:0.6}},
+                    {source:'固态电池联合实验室', target:'电池封装平台', label:{show:true, formatter:'联合研发'}, lineStyle:{type:'dashed', color:colorMap.red, opacity:0.6}},
+                    {source:'固态电池联合实验室', target:'整车制造(下游赋能)', label:{show:true, formatter:'专利转化'}, lineStyle:{type:'dashed', color:colorMap.red, opacity:0.6}}
+                ]
+            }]
+        });
+
+        // Function to toggle fusion view
+        window.toggleScholarFusion = function(checked) {
+            const chart = charts['chart-m9'];
+            if(!chart) return;
+            chart.dispatchAction({
+                type: 'legendToggleSelect',
+                name: '科研人才/实验室'
+            });
+        };
+
+        // Add Node Tag Logic
+        function addNodeTag() {
+            const input = document.getElementById('node-input');
+            const container = document.getElementById('selected-nodes');
+            if(input.value.trim() !== '') {
+                const tag = document.createElement('span');
+                tag.className = 'tag';
+                tag.innerHTML = `${input.value} <span style="cursor:pointer; margin-left:4px;" onclick="this.parentElement.remove()">×</span>`;
+                container.appendChild(tag);
+                input.value = '';
+            }
+        }
+
+        // Helper to simulate jumping to Module 3 (Collaboration)
+        window.simulateJumpToM3 = function(btn) {
+            const originalText = btn.innerText;
+            btn.innerText = '拉取计算中...';
+            btn.style.opacity = '0.5';
+            setTimeout(() => {
+                btn.innerText = originalText;
+                btn.style.opacity = '1';
+                // Trigger click on Module 3 menu item
+                const targetLink = document.querySelector('.nav-item[data-target="m3"]');
+                if(targetLink) targetLink.click();
+            }, 800);
+        };
+
+        // Helper to simulate action
+        window.simulateToolAction = function(btn, chartIds) {
+            const originalText = btn.innerText;
+            btn.innerText = '引擎计算中...';
+            btn.style.opacity = '0.7';
+            btn.disabled = true;
+            
+            const ids = Array.isArray(chartIds) ? chartIds : [chartIds];
+            ids.forEach(id => {
+                if (charts[id]) charts[id].showLoading({text: '计算请求中...', color: '#409eff', maskColor: 'rgba(255, 255, 255, 0.7)'});
+            });
+
+            setTimeout(() => {
+                btn.innerText = originalText;
+                btn.style.opacity = '1';
+                btn.disabled = false;
+                ids.forEach(id => {
+                    if (charts[id]) {
+                        charts[id].hideLoading();
+                        const option = charts[id].getOption();
+                        charts[id].setOption(option, true);
+                    }
+                });
+            }, 1200);
+        };
+
+        // Helper to simulate layout switch
+        window.switchLayout = function(type, btn) {
+            const chart = charts['chart-m1'];
+            if(!chart) return;
+            
+            // visually update btn
+            const siblings = btn.parentElement.querySelectorAll('button.btn-outline');
+            siblings.forEach(b => {
+                b.style.backgroundColor = '';
+                b.style.borderColor = '';
+                b.style.color = '';
+            });
+            btn.style.backgroundColor = '#ecf5ff';
+            btn.style.borderColor = '#c6e2ff';
+            btn.style.color = 'var(--primary-color)';
+
+            chart.showLoading({text: '切换布局算命中...', color: '#409eff', maskColor: 'rgba(255, 255, 255, 0.7)'});
+            setTimeout(() => {
+                chart.hideLoading();
+                const option = chart.getOption();
+                if(option.series && option.series[0]) {
+                    if (type === 'circular') {
+                        option.series[0].layout = 'circular';
+                        option.series[0].force = null;
+                        option.series[0].circular = { rotateLabel: true };
+                    } else {
+                        option.series[0].layout = 'force';
+                        option.series[0].force = {repulsion:100, edgeLength:[50,200]};
+                        option.series[0].circular = null;
+                    }
+                }
+                chart.setOption(option, true);
+            }, 800);
+        };
+
+        // Helper to simulate Export
+        window.simulateExport = function(btn) {
+            const originalText = btn.innerText;
+            btn.innerText = '正在打包写入CSV...';
+            btn.disabled = true;
+            setTimeout(() => {
+                btn.innerText = '导出下载成功 ✅';
+                btn.style.backgroundColor = 'var(--success-color)';
+                btn.style.border = 'none';
+                setTimeout(() => {
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                    btn.style.backgroundColor = '';
+                    btn.style.border = '';
+                }, 2500);
+            }, 1000);
+        };
+
+        // Helper to simulate Import
+        window.simulateImport = function(btn) {
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<span style="font-size: 14px;">⏳ 解析文件数据中...</span>';
+            btn.disabled = true;
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                const container = document.getElementById('selected-nodes');
+                
+                ['吴恩达 (Stanford)', 'Yann LeCun (NYU)', 'Yoshua Bengio (UdeM)'].forEach(name => {
+                    const tag = document.createElement('span');
+                    tag.className = 'tag';
+                    tag.innerHTML = `${name} <span style="cursor:pointer; margin-left:4px;" onclick="this.parentElement.remove()">×</span>`;
+                    container.appendChild(tag);
+                });
+            }, 1500);
+        };
+
+        // ==========================================
+        // EXPORT DROPDOWN TOGGLE
+        // ==========================================
+        window.toggleExportMenu = function(btn) {
+            const dropdown = btn.parentElement.querySelector('.export-dropdown');
+            dropdown.classList.toggle('show');
+            // Close on outside click
+            setTimeout(() => {
+                document.addEventListener('click', function handler(e) {
+                    if (!btn.parentElement.contains(e.target)) {
+                        dropdown.classList.remove('show');
+                        document.removeEventListener('click', handler);
+                    }
+                });
+            }, 10);
+        };
+
+        // ==========================================
+        // UPLOAD SIMULATION
+        // ==========================================
+        window.simulateUpload = function() {
+            const dropzone = document.getElementById('upload-dropzone');
+            const result = document.getElementById('upload-result');
+            dropzone.innerHTML = '<div style="font-size:36px; margin-bottom:15px;">⏳</div><p style="font-size:15px; color:var(--primary-color);">正在解析数据并构建实体-关系模型...</p><div style="margin-top:15px; height:4px; background:#e4e7ed; border-radius:2px; overflow:hidden;"><div style="width:0%; height:100%; background:var(--primary-color); border-radius:2px; transition:width 2s;" id="upload-progress"></div></div>';
+            setTimeout(() => { document.getElementById('upload-progress').style.width = '100%'; }, 100);
+            setTimeout(() => {
+                dropzone.innerHTML = '<div style="font-size:36px; margin-bottom:15px;">✅</div><p style="font-size:15px; color:var(--success-color); font-weight:bold;">学者列表.xlsx 解析成功</p><p style="font-size:13px; color:var(--text-muted);">点击此处可重新上传</p>';
+                result.style.display = 'block';
+            }, 2500);
+        };
+
+        // ==========================================
+        // NODE CLICK DETAIL MODAL (feedback #6)
+        // ==========================================
+        window.showNodeDetail = function(name) {
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.onclick = function(e) { if(e.target === modal) modal.remove(); };
+            modal.innerHTML = `
+                <div class="modal-box">
+                    <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">✕</button>
+                    <h3 style="margin-bottom:15px; color:var(--text-heading);">📋 实体详情：${name}</h3>
+                    <table>
+                        <tr><th style="width:120px;">姓名/名称</th><td><strong>${name}</strong></td></tr>
+                        <tr><th>所属机构</th><td>清华大学 交叉信息研究院</td></tr>
+                        <tr><th>职称/职务</th><td>教授 / 博士生导师</td></tr>
+                        <tr><th>研究方向</th><td>人工智能、知识图谱、自然语言处理</td></tr>
+                        <tr><th>发表论文</th><td>187 篇（SCI/EI: 142 篇）</td></tr>
+                        <tr><th>授权专利</th><td>34 项（发明专利: 28 项）</td></tr>
+                        <tr><th>H-index</th><td>42</td></tr>
+                        <tr><th>PageRank</th><td>领域前 2.3%（Top 15/650）</td></tr>
+                        <tr><th>与中心节点关系</th><td><span class="tag">论文合著 23篇</span><span class="tag">联合专利 5项</span><span class="tag">同一课题组</span></td></tr>
+                    </table>
+                    <div class="data-source" style="margin-top:15px;">
+                        📚 <strong>数据来源：</strong>CNKI · Web of Science · 国家知识产权局
+                    </div>
+                    <div style="margin-top:15px; display:flex; gap:10px;">
+                        <button class="btn btn-primary" style="flex:1;" onclick="this.closest('.modal-overlay').remove(); document.querySelector('.nav-item[data-target=m3]').click();">查看合作成果</button>
+                        <button class="btn btn-outline" style="flex:1;" onclick="simulateExport(this)">导出实体档案</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        };
+
+        // Attach click handlers to ECharts nodes
+        function attachNodeClickHandlers() {
+            Object.entries(charts).forEach(([id, chart]) => {
+                chart.on('click', function(params) {
+                    if (params.dataType === 'node' || params.componentType === 'series') {
+                        if (params.name && params.name.length > 0) {
+                            showNodeDetail(params.name);
+                        }
+                    }
+                });
+            });
+        }
+        // Delay to ensure charts are initialized
+        setTimeout(attachNodeClickHandlers, 2000);
+
+        // ==========================================
+        // EVIDENCE DETAIL MODAL (feedback #3)
+        // ==========================================
+        window.showEvidenceDetail = function(scholar, type) {
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.onclick = function(e) { if(e.target === modal) modal.remove(); };
+            modal.innerHTML = `
+                <div class="modal-box">
+                    <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">✕</button>
+                    <h3 style="margin-bottom:15px; color:var(--text-heading);">📑 精准证据溯源：${scholar}</h3>
+                    <div style="margin-bottom:15px;">
+                        <h4 style="font-size:14px; margin-bottom:10px;">📄 论文原文证据</h4>
+                        <div style="background:#f9f9f9; border-left:3px solid var(--primary-color); padding:12px 15px; font-size:13px; line-height:1.8; margin-bottom:10px; border-radius:4px;">
+                            <strong>[论文]</strong> "A Novel Framework for Knowledge Graph Embedding with Multi-hop Reasoning"<br>
+                            <em style="color:var(--text-muted);">Journal of AI Research, 2023, Vol.68, pp.1245-1267</em><br>
+                            <span style="background:#fff3cd; padding:1px 4px;">原文第3.2节：</span>"...与 ${scholar} 团队在实体消歧算法上展开深度合作，联合提出了基于时序注意力的跨域实体对齐方法..."
+                        </div>
+                    </div>
+                    <div style="margin-bottom:15px;">
+                        <h4 style="font-size:14px; margin-bottom:10px;">📋 专利证据</h4>
+                        <div style="background:#f9f9f9; border-left:3px solid var(--warning-color); padding:12px 15px; font-size:13px; line-height:1.8; border-radius:4px;">
+                            <strong>[专利]</strong> CN202310892345.6 "一种基于知识图谱的多模态实体融合方法"<br>
+                            <em style="color:var(--text-muted);">发明人：张维理, ${scholar} 等 | 申请日：2023-07-15</em><br>
+                            <div style="margin-top:8px; background:#eee; height:80px; border-radius:4px; display:flex; align-items:center; justify-content:center; color:#999; font-size:12px;">
+                                📐 专利附图 (Fig.3: 系统架构图) — 点击查看原件
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                        <button class="btn btn-primary" style="flex:1;" onclick="simulateExport(this)">导出全部证据 (.pdf)</button>
+                        <button class="btn btn-outline" style="flex:1;" onclick="simulateExport(this)">导出原文引用 (.bib)</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        };
+
+        // Window resize
+        window.addEventListener('resize', () => { Object.values(charts).forEach(c => c.resize()); });
+
+        // ==========================================
+        // PIN-TO-REPORT SYSTEM
+        // ==========================================
+        const pinnedItems = [];
+        const moduleNames = {
+            m1: '专家直接关系挖掘', m2: '多阶间接关系寻径', m3: '合作价值与轨迹溯源',
+            m4: '同事关系挖掘', m5: '校友关系挖掘', m6: '论文合著与核心节点',
+            m7: '科技企业全景统研', m8: '产业链重点事件传播', m9: '产业链全景态势'
+        };
+
+        window.pinItem = function(moduleId) {
+            const name = moduleNames[moduleId] || moduleId;
+            const item = { id: moduleId, name: name, time: new Date().toLocaleTimeString() };
+            pinnedItems.push(item);
+            updatePinBadge();
+            renderPinnedItems();
+            // flash feedback
+            const btn = event.target;
+            const orig = btn.innerText;
+            btn.innerText = '✅ 已钉选';
+            btn.style.background = 'var(--success-color)';
+            btn.style.color = '#fff';
+            setTimeout(() => { btn.innerText = orig; btn.style.background = ''; btn.style.color = ''; }, 1200);
+        };
+
+        function updatePinBadge() {
+            const badge = document.getElementById('pin-badge');
+            if (pinnedItems.length > 0) {
+                badge.style.display = 'inline';
+                badge.innerText = pinnedItems.length;
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
+        function renderPinnedItems() {
+            const container = document.getElementById('pinned-items-container');
+            if (pinnedItems.length === 0) {
+                container.innerHTML = '<div style="text-align:center; padding:60px 20px; color:var(--text-muted); font-size:14px;">暂无钉选内容。请在各分析模块中点击 <strong>"📌 钉选到报告"</strong> 按钮收集分析结论。</div>';
+                return;
+            }
+            container.innerHTML = pinnedItems.map((item, i) => `
+                <div style="background:#fff; border:1px solid var(--border-color); border-radius:8px; padding:15px 20px; display:flex; justify-content:space-between; align-items:center; box-shadow:0 1px 4px rgba(0,0,0,0.04);">
+                    <div>
+                        <strong style="color:var(--text-heading);">${item.name}</strong>
+                        <span style="color:var(--text-muted); font-size:12px; margin-left:10px;">钉选于 ${item.time}</span>
+                    </div>
+                    <button class="btn btn-outline" style="padding:4px 12px; font-size:12px; color:var(--danger-color); border-color:var(--danger-color);" onclick="removePinItem(${i})">移除</button>
+                </div>
+            `).join('');
+        }
+
+        window.removePinItem = function(index) {
+            pinnedItems.splice(index, 1);
+            updatePinBadge();
+            renderPinnedItems();
+        };
+
+        window.clearPinnedItems = function() {
+            pinnedItems.length = 0;
+            updatePinBadge();
+            renderPinnedItems();
+            document.getElementById('ai-summary-output').style.display = 'none';
+        };
+
+        // ==========================================
+        // AI SUMMARY (from pinned items)
+        // ==========================================
+        window.simulateAISummary = function(btn) {
+            if (pinnedItems.length === 0) { alert('请先在各模块中钉选分析结论'); return; }
+            const orig = btn.innerText;
+            btn.innerText = '🤖 AI 正在整合分析...';
+            btn.disabled = true;
+            btn.style.opacity = '0.7';
+            const moduleList = pinnedItems.map(p => p.name).join('、');
+            setTimeout(() => {
+                btn.innerText = orig;
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                const output = document.getElementById('ai-summary-output');
+                output.style.display = 'block';
+                document.getElementById('ai-summary-body').innerHTML = `
+                    <p><strong>📌 本报告基于以下模块的分析结论整合生成：</strong>${moduleList}</p>
+                    <hr style="margin:15px 0; border:none; border-top:1px solid #eee;">
+                    <p><strong>一、核心发现摘要</strong></p>
+                    <p>经系统综合 ${pinnedItems.length} 个分析维度的交叉比对，目标对象在学术影响力、产业合作深度和人脉网络广度三个方面均呈现显著特征。其直接合作网络覆盖 12 个国家/地区的 47 位核心协作者，间接关联路径可追溯至 3 个产业头部企业的技术决策层。</p>
+                    <p><strong>二、关系网络分析</strong></p>
+                    <p>通过同事关系推理和校友网络挖掘，发现目标对象与多个关键机构存在时间轴交叉，推理构建出 8 组高置信度（>90%）的历史同事关系，其中 3 组涉及当前重点产业链的核心企业。</p>
+                    <p><strong>三、合作价值量化</strong></p>
+                    <p>双节点贡献度评估显示，目标对象在近五年的联合成果中主导占比 65%，属于核心驱动型合作者。PageRank 全局排名位于领域前 2.3%，具备极高的学术号召力。</p>
+                    <p><strong>四、风险提示与建议</strong></p>
+                    <p>建议关注其 2019-2021 年间与某企业的密集合作期，该时段存在多项未公开的联合专利申请，可能涉及竞业限制范畴。建议在正式决策前补充法务尽调。</p>
+                `;
+                output.scrollIntoView({ behavior: 'smooth' });
+            }, 2000);
+        };
+
+        // ==========================================
+        // AI SMART REPORT (natural language search)
+        // ==========================================
+        window.simulateAIReport = function() {
+            const input = document.getElementById('ai-search-input').value.trim();
+            if (!input) { alert('请输入查询对象'); return; }
+            const resultDiv = document.getElementById('ai-report-result');
+            const titleEl = document.getElementById('ai-report-title');
+            const bodyEl = document.getElementById('ai-report-body');
+            resultDiv.style.display = 'block';
+            titleEl.innerText = '⏳ AI 正在调度全部相关模块进行深度挖掘...';
+            bodyEl.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-muted);">正在分析实体类型 → 调度引擎 → 生成报告...</div>';
+
+            setTimeout(() => {
+                // detect entity type
+                const isCompany = /公司|集团|企业|股份|科技|有限/.test(input);
+                const isIndustry = /产业链|材料|制造|新能源|半导体|芯片/.test(input);
+                if (isCompany) {
+                    titleEl.innerText = `📊 《${input}》企业科创深度穿透报告`;
+                    bodyEl.innerHTML = `
+                        <p style="color:var(--primary-color); font-weight:bold;">🏭 系统已识别实体类型：科技企业 → 自动调度模块 7（企业全景统研）、模块 6（核心节点排名）、模块 9（产业链定位）</p>
+                        <hr style="margin:12px 0; border:none; border-top:1px solid #eee;">
+                        <p><strong>一、企业科创支撑网穿透</strong></p>
+                        <p>「${input}」底层科创支撑网包含：特聘顾问学者 12 位（含院士 2 位）、联合实验室 5 个、核心专利权族 1,247 项（其中发明专利占 73%）。技术护城河评级：A+（极强）。</p>
+                        <p><strong>二、核心技术人才图谱</strong></p>
+                        <p>企业核心研发团队 PageRank 排名显示，首席科学家全球领域排名前 1.5%，3 位技术总监分别在语音识别、NLP、多模态领域占据头部位置。人才储备深度评级：优秀。</p>
+                        <p><strong>三、产业链生态位分析</strong></p>
+                        <p>该企业位于人工智能产业链中游（平台层），上游依赖芯片供应商 3 家，下游覆盖教育、医疗、政务等 7 个垂直应用场景。产业链话语权评分：82/100。</p>
+                        <p><strong>四、风险与机遇研判</strong></p>
+                        <p>近期全球大模型技术突破（GPT系列）对该企业核心业务形成替代性威胁，建议关注其技术路线转型进度。同时，其在教育AI领域的先发优势仍具较强壁垒。</p>
+                    `;
+                } else if (isIndustry) {
+                    titleEl.innerText = `📊 《${input}》产业链全景深度分析报告`;
+                    bodyEl.innerHTML = `
+                        <p style="color:var(--primary-color); font-weight:bold;">🗺 系统已识别实体类型：产业链 → 自动调度模块 9（全景态势）、模块 8（事件传播）、模块 7（企业统研）</p>
+                        <hr style="margin:12px 0; border:none; border-top:1px solid #eee;">
+                        <p><strong>一、产业链结构概览</strong></p>
+                        <p>「${input}」产业链涵盖上游（原材料/设备）企业 34 家、中游（制造/封装）企业 89 家、下游（应用/终端）企业 156 家。产业链成熟度指数：7.2/10（高速成长期）。</p>
+                        <p><strong>二、关键卡脖子节点</strong></p>
+                        <p>系统识别出 3 个核心技术瓶颈环节：其中 EDA 设计工具国产化率仅 5%，高纯度靶材供应集中度 CR3=89%，存在显著供应链安全风险。</p>
+                        <p><strong>三、学术-产业桥梁人才</strong></p>
+                        <p>通过多跳关系挖掘，发现 27 位同时活跃于学术界和产业界的桥梁型专家，其中 8 位与本区域机构存在校友或同事关系，具备高可引进性。</p>
+                        <p><strong>四、近期重大事件影响</strong></p>
+                        <p>TOP-3 高影响力事件：(1) 某国出口管制升级 → 波及中游 12 家企业；(2) 某院士团队技术突破 → 利好上游 3 家材料商；(3) 头部企业战略并购 → 产业链格局重塑中。</p>
+                    `;
+                } else {
+                    titleEl.innerText = `📊 《${input}》专家全景背景调查报告`;
+                    bodyEl.innerHTML = `
+                        <p style="color:var(--primary-color); font-weight:bold;">👤 系统已识别实体类型：学者/专家 → 自动调度模块 1-6（关系挖掘、合作测算、同事/校友推理、PR排名）</p>
+                        <hr style="margin:12px 0; border:none; border-top:1px solid #eee;">
+                        <p><strong>一、直接合作关系网络</strong></p>
+                        <p>「${input}」直接合作者共 47 位，覆盖 12 个国家/地区。核心合作圈层（Top-5）：清华大学 A 教授（论文合著 23 篇）、MIT B 教授（联合专利 8 项）、某企业 C 总监（产学研合作 5 项）等。</p>
+                        <p><strong>二、间接关联路径发现</strong></p>
+                        <p>经 6 度多跳寻径，发现与某能源集团技术决策层存在 3 跳强关联路径（A级置信度），传导链路为：目标学者 → 论文合著 → 某机构李XX → 联合专利 → 该集团王Y。</p>
+                        <p><strong>三、同事与校友网络推理</strong></p>
+                        <p>时间轴匹配算法识别出 8 组高置信度历史同事关系（匹配信度均 >90%），其中 2 组涉及企业核心高管。校友网络中发现 3 位直系师兄弟现任产业界关键岗位。</p>
+                        <p><strong>四、学术影响力排名</strong></p>
+                        <p>PageRank 全局排名：领域前 2.3%（Top 15/650）。近五年合作成果中主导占比 65%，属于核心驱动型学者。H-index: 42，总引用: 8,700+。</p>
+                        <p><strong>五、综合评估建议</strong></p>
+                        <p>目标人才具备极强的学术号召力和产业连接能力，引才价值评级：⭐⭐⭐⭐⭐。建议优先对接，并注意其 2019-2021 年间与某企业的密集合作期可能涉及竞业限制。</p>
+                    `;
+                }
+            }, 2500);
+        };
+
+        // ==========================================
+        // INJECT PIN BUTTONS INTO MODULE TOOLBARS
+        // ==========================================
+        document.addEventListener('DOMContentLoaded', function() {
+            // For modules with canvas-toolbar, add pin button
+            ['m1','m2','m3','m4','m5','m6','m7','m8','m9'].forEach(mid => {
+                const container = document.getElementById(mid);
+                if (!container) return;
+                const toolbar = container.querySelector('.canvas-toolbar');
+                const headerBar = container.querySelector('.panel-header-sm');
+                if (toolbar) {
+                    const pinBtn = document.createElement('button');
+                    pinBtn.className = 'btn btn-outline';
+                    pinBtn.style.cssText = 'padding:4px 12px; font-size:12px; margin-left:auto;';
+                    pinBtn.innerText = '📌 钉选到报告';
+                    pinBtn.onclick = function() { pinItem(mid); };
+                    toolbar.appendChild(pinBtn);
+                } else if (headerBar) {
+                    // For modules without toolbar, add after the first panel-header
+                    const canvasArea = container.querySelector('.canvas-area');
+                    if (canvasArea) {
+                        const pinBtn = document.createElement('button');
+                        pinBtn.className = 'btn btn-outline';
+                        pinBtn.style.cssText = 'position:absolute; top:10px; right:15px; padding:4px 12px; font-size:12px; z-index:20;';
+                        pinBtn.innerText = '📌 钉选到报告';
+                        pinBtn.onclick = function() { pinItem(mid); };
+                        canvasArea.style.position = 'relative';
+                        canvasArea.appendChild(pinBtn);
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
