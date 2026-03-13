@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>隐含关联挖掘 — 科技情报挖掘系统</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0e1a;
+            --bg-secondary: #111827;
+            --bg-card: #1a2035;
+            --border: rgba(99, 102, 241, .15);
+            --border-active: rgba(99, 102, 241, .5);
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --accent-blue: #6366f1;
+            --accent-purple: #8b5cf6;
+            --accent-cyan: #06b6d4;
+            --accent-emerald: #10b981;
+            --accent-amber: #f59e0b;
+            --accent-rose: #f43f5e;
+            --gradient-hero: linear-gradient(135deg, #6366f1, #8b5cf6, #06b6d4);
+            --shadow-glow: 0 0 40px rgba(99, 102, 241, .15)
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        body {
+            font-family: 'Noto Sans SC', 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.7
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            padding: 20px 40px;
+            border-bottom: 1px solid var(--border)
+        }
+
+        .header .logo {
+            font-size: 1.1rem;
+            font-weight: 700;
+            background: var(--gradient-hero);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent
+        }
+
+        .header .breadcrumb {
+            margin-left: 16px;
+            color: var(--text-muted);
+            font-size: .85rem
+        }
+
+        .header .user-badge {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(244, 63, 94, .1);
+            border: 1px solid rgba(244, 63, 94, .2);
+            padding: 6px 16px;
+            border-radius: 100px;
+            font-size: .82rem;
+            color: var(--accent-rose)
+        }
+
+        .page-hero {
+            padding: 48px 40px 32px;
+            position: relative;
+            overflow: hidden
+        }
+
+        .page-hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -30%;
+            width: 160%;
+            height: 200%;
+            background: radial-gradient(ellipse at 40% 50%, rgba(139, 92, 246, .12) 0%, transparent 60%);
+            animation: pulse 6s ease-in-out infinite alternate
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: translate(0, 0)
+            }
+
+            100% {
+                transform: translate(-3%, 2%)
+            }
+        }
+
+        .page-hero h1 {
+            position: relative;
+            font-size: 2rem;
+            font-weight: 800;
+            background: var(--gradient-hero);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px
+        }
+
+        .page-hero p {
+            position: relative;
+            color: var(--text-secondary);
+            font-size: .95rem;
+            max-width: 800px
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 40px 60px
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            transition: all .3s
+        }
+
+        .card:hover {
+            border-color: var(--border-active);
+            box-shadow: var(--shadow-glow)
+        }
+
+        .card-title {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px
+        }
+
+        .card-subtitle {
+            font-size: .8rem;
+            color: var(--text-muted);
+            margin-bottom: 16px
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 6px;
+            font-size: .72rem;
+            font-weight: 600
+        }
+
+        .badge-blue {
+            background: rgba(99, 102, 241, .15);
+            color: var(--accent-blue)
+        }
+
+        .badge-emerald {
+            background: rgba(16, 185, 129, .15);
+            color: var(--accent-emerald)
+        }
+
+        .badge-amber {
+            background: rgba(245, 158, 11, .15);
+            color: var(--accent-amber)
+        }
+
+        .badge-rose {
+            background: rgba(244, 63, 94, .15);
+            color: var(--accent-rose)
+        }
+
+        .badge-purple {
+            background: rgba(139, 92, 246, .15);
+            color: var(--accent-purple)
+        }
+
+        .section-head {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin: 32px 0 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px
+        }
+
+        .section-desc {
+            color: var(--text-secondary);
+            font-size: .85rem;
+            margin-bottom: 20px
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 32px
+        }
+
+        .search-select {
+            padding: 14px 16px;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+            color: var(--text-primary);
+            font-size: .9rem;
+            outline: none;
+            min-width: 220px
+        }
+
+        .search-select option {
+            background: var(--bg-card)
+        }
+
+        .search-btn {
+            padding: 14px 28px;
+            border-radius: 14px;
+            border: none;
+            background: var(--accent-purple);
+            color: #fff;
+            font-size: .9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .3s;
+            white-space: nowrap
+        }
+
+        .search-btn:hover {
+            background: #7c4fe5;
+            box-shadow: 0 4px 20px rgba(139, 92, 246, .4)
+        }
+
+        .stats-row {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px
+        }
+
+        .stat-item {
+            flex: 1;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px;
+            text-align: center
+        }
+
+        .stat-num {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: var(--gradient-hero);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent
+        }
+
+        .stat-label {
+            font-size: .75rem;
+            color: var(--text-muted);
+            margin-top: 2px
+        }
+
+        /* Network visualization */
+        .network-canvas {
+            position: relative;
+            height: 480px;
+            background: radial-gradient(circle at center, rgba(139, 92, 246, .04) 0%, transparent 70%);
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 24px
+        }
+
+        .net-node {
+            position: absolute;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all .4s;
+            z-index: 3;
+            font-size: .7rem;
+            font-weight: 700
+        }
+
+        .net-node:hover {
+            transform: scale(1.2);
+            z-index: 10
+        }
+
+        .net-node.source {
+            box-shadow: 0 0 24px rgba(99, 102, 241, .5)
+        }
+
+        .net-node.target {
+            box-shadow: 0 0 24px rgba(16, 185, 129, .5)
+        }
+
+        .net-label {
+            position: absolute;
+            font-size: .68rem;
+            text-align: center;
+            white-space: nowrap;
+            z-index: 4;
+            pointer-events: none
+        }
+
+        .net-edge {
+            position: absolute;
+            z-index: 1;
+            transform-origin: left center
+        }
+
+        /* Path cards */
+        .path-card {
+            background: rgba(139, 92, 246, .05);
+            border: 1px solid rgba(139, 92, 246, .2);
+            border-radius: 14px;
+            padding: 20px;
+            margin-bottom: 16px;
+            cursor: pointer;
+            transition: all .3s
+        }
+
+        .path-card:hover {
+            border-color: var(--accent-purple);
+            background: rgba(139, 92, 246, .08)
+        }
+
+        .path-card.active {
+            border-color: var(--accent-purple);
+            box-shadow: 0 0 20px rgba(139, 92, 246, .15)
+        }
+
+        .path-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px
+        }
+
+        .path-title {
+            font-weight: 700;
+            font-size: .95rem
+        }
+
+        .path-score {
+            font-size: 1.4rem;
+            font-weight: 800
+        }
+
+        .path-chain {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin: 12px 0
+        }
+
+        .path-node {
+            padding: 5px 12px;
+            border-radius: 8px;
+            font-size: .75rem;
+            font-weight: 600
+        }
+
+        .path-arrow {
+            color: var(--text-muted);
+            font-size: .8rem
+        }
+
+        .path-evidence {
+            font-size: .78rem;
+            color: var(--text-secondary);
+            line-height: 1.6
+        }
+
+        .path-evidence strong {
+            color: var(--accent-amber)
+        }
+
+        /* Candidate list */
+        .candidate {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, .04)
+        }
+
+        .candidate:last-child {
+            border: none
+        }
+
+        .candidate-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            flex-shrink: 0
+        }
+
+        .candidate-info {
+            flex: 1
+        }
+
+        .candidate-name {
+            font-weight: 700;
+            font-size: .9rem
+        }
+
+        .candidate-meta {
+            font-size: .75rem;
+            color: var(--text-secondary);
+            margin-top: 2px
+        }
+
+        .candidate-tags {
+            display: flex;
+            gap: 6px;
+            margin-top: 6px;
+            flex-wrap: wrap
+        }
+
+        .candidate-score {
+            text-align: center
+        }
+
+        .candidate-score-num {
+            font-size: 1.6rem;
+            font-weight: 800
+        }
+
+        .candidate-score-label {
+            font-size: .68rem;
+            color: var(--text-muted)
+        }
+
+        /* Score radar */
+        .radar-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px
+        }
+
+        .radar-label {
+            font-size: .78rem;
+            color: var(--text-secondary);
+            width: 80px;
+            text-align: right
+        }
+
+        .radar-bar-bg {
+            flex: 1;
+            height: 8px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, .06);
+            overflow: hidden
+        }
+
+        .radar-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 1s ease
+        }
+
+        .radar-val {
+            font-size: .78rem;
+            font-weight: 600;
+            width: 32px
+        }
+
+        @media(max-width:768px) {
+            .grid-2 {
+                grid-template-columns: 1fr
+            }
+
+            .container {
+                padding: 0 16px 40px
+            }
+
+            .stats-row {
+                flex-wrap: wrap
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <div class="logo">科技情报挖掘系统</div>
+        <div class="breadcrumb">/ 智能化分析 / 隐含关联挖掘</div>
+        <div class="user-badge">👔 张局长 · 科技局决策者</div>
+    </div>
+
+    <div class="page-hero">
+        <h1>🕸️ 隐含关联挖掘</h1>
+        <p>从看似无关的孤立事件中发现系统性的学术连通路径——找到表面没有合作，但实质互引互通的隐含合作者</p>
+    </div>
+
+    <div class="container">
+
+        <!-- Search -->
+        <div class="search-bar">
+            <select class="search-select" id="sourceTeam">
+                <option>源节点：深圳大学量子信息研究团队</option>
+                <option>源节点：南方科技大学量子科学中心</option>
+                <option>源节点：鹏城实验室量子计算组</option>
+            </select>
+            <select class="search-select" id="targetField">
+                <option>目标方向：容错核心算法</option>
+                <option>目标方向：量子纠错码</option>
+                <option>目标方向：表面码理论</option>
+            </select>
+            <button class="search-btn" onclick="startDiscovery()">🔗 发现隐含合作者</button>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-row" id="statsRow" style="display:none">
+            <div class="stat-item">
+                <div class="stat-num">2.4M</div>
+                <div class="stat-label">扫描学者节点</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-num">18.7M</div>
+                <div class="stat-label">扫描关系边</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-num">6</div>
+                <div class="stat-label">隐含连通路径</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-num">3</div>
+                <div class="stat-label">高置信合作者</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-num" style="background:linear-gradient(135deg,#10b981,#06b6d4)">92</div>
+                <div class="stat-label">最高合作可行性</div>
+            </div>
+        </div>
+
+        <div id="results" style="display:none">
+
+            <!-- Network Graph -->
+            <div class="section-head">🌐 多维关系网络图谱</div>
+            <div class="section-desc">蓝色=源团队 · 绿色=目标合作者 · 灰色=中间桥接节点 · 线条颜色表示关系类型（<span style="color:#8b5cf6">■互引</span>
+                <span style="color:#06b6d4">■会议交集</span> <span style="color:#f59e0b">■共引</span>）</div>
+            <div class="card" style="padding:0;overflow:hidden">
+                <div class="network-canvas" id="networkCanvas"></div>
+            </div>
+
+            <!-- Top Candidates -->
+            <div class="section-head">🎯 精准锁定：隐含合作者候选人</div>
+            <div class="section-desc">系统跳过论文产量高但实质交叉浅的"学术名人"，从互引频率、会议交集、研究互补性等隐含信号中精准筛选</div>
+
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">🏆 Top 3 隐含合作者</div>
+                    <div class="card-subtitle">按合作可行性综合评分排序</div>
+
+                    <div class="candidate" style="cursor:pointer" onclick="showDetail(0)">
+                        <div class="candidate-avatar"
+                            style="background:rgba(16,185,129,.15);border:2px solid var(--accent-emerald)">🧑‍🔬</div>
+                        <div class="candidate-info">
+                            <div class="candidate-name">Dr. Klaus Weber <span class="badge badge-emerald">🔥 最佳匹配</span>
+                            </div>
+                            <div class="candidate-meta">慕尼黑工业大学 · 容错算法实验室 · 青年教授</div>
+                            <div class="candidate-tags">
+                                <span class="badge badge-purple">互引 23次</span>
+                                <span class="badge badge-blue">会议交集 5次</span>
+                                <span class="badge badge-amber">研究高度互补</span>
+                            </div>
+                        </div>
+                        <div class="candidate-score">
+                            <div class="candidate-score-num" style="color:var(--accent-emerald)">92</div>
+                            <div class="candidate-score-label">可行性</div>
+                        </div>
+                    </div>
+
+                    <div class="candidate" onclick="showDetail(1)">
+                        <div class="candidate-avatar"
+                            style="background:rgba(6,182,212,.15);border:2px solid var(--accent-cyan)">👨‍🔬</div>
+                        <div class="candidate-info">
+                            <div class="candidate-name">Prof. Yuki Tanaka</div>
+                            <div class="candidate-meta">东京大学 · 量子计算中心 · 副教授</div>
+                            <div class="candidate-tags">
+                                <span class="badge badge-purple">互引 18次</span>
+                                <span class="badge badge-blue">共引 34次</span>
+                            </div>
+                        </div>
+                        <div class="candidate-score">
+                            <div class="candidate-score-num" style="color:var(--accent-cyan)">78</div>
+                            <div class="candidate-score-label">可行性</div>
+                        </div>
+                    </div>
+
+                    <div class="candidate" onclick="showDetail(2)">
+                        <div class="candidate-avatar"
+                            style="background:rgba(245,158,11,.15);border:2px solid var(--accent-amber)">👩‍🔬</div>
+                        <div class="candidate-info">
+                            <div class="candidate-name">Dr. Sarah Chen <span class="badge badge-rose">回流意愿高</span></div>
+                            <div class="candidate-meta">MIT量子实验室 · 华裔博后 · 3年内有归国计划</div>
+                            <div class="candidate-tags">
+                                <span class="badge badge-purple">互引 12次</span>
+                                <span class="badge badge-amber">导师网络重叠</span>
+                            </div>
+                        </div>
+                        <div class="candidate-score">
+                            <div class="candidate-score-num" style="color:var(--accent-amber)">71</div>
+                            <div class="candidate-score-label">可行性</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detail Panel -->
+                <div class="card" id="detailPanel">
+                    <div class="card-title">📊 Dr. Klaus Weber · 合作可行性评估</div>
+                    <div class="card-subtitle">基于6维关系数据的综合评分</div>
+
+                    <div id="radarChart">
+                        <div class="radar-item">
+                            <div class="radar-label">互引频率</div>
+                            <div class="radar-bar-bg">
+                                <div class="radar-bar-fill" style="width:92%;background:var(--accent-purple)"></div>
+                            </div>
+                            <div class="radar-val" style="color:var(--accent-purple)">92</div>
+                        </div>
+                        <div class="radar-item">
+                            <div class="radar-label">研究互补性</div>
+                            <div class="radar-bar-bg">
+                                <div class="radar-bar-fill" style="width:95%;background:var(--accent-emerald)"></div>
+                            </div>
+                            <div class="radar-val" style="color:var(--accent-emerald)">95</div>
+                        </div>
+                        <div class="radar-item">
+                            <div class="radar-label">会议交集</div>
+                            <div class="radar-bar-bg">
+                                <div class="radar-bar-fill" style="width:78%;background:var(--accent-cyan)"></div>
+                            </div>
+                            <div class="radar-val" style="color:var(--accent-cyan)">78</div>
+                        </div>
+                        <div class="radar-item">
+                            <div class="radar-label">学术影响力</div>
+                            <div class="radar-bar-bg">
+                                <div class="radar-bar-fill" style="width:85%;background:var(--accent-amber)"></div>
+                            </div>
+                            <div class="radar-val" style="color:var(--accent-amber)">85</div>
+                        </div>
+                        <div class="radar-item">
+                            <div class="radar-label">合作意愿</div>
+                            <div class="radar-bar-bg">
+                                <div class="radar-bar-fill" style="width:88%;background:var(--accent-blue)"></div>
+                            </div>
+                            <div class="radar-val" style="color:var(--accent-blue)">88</div>
+                        </div>
+                        <div class="radar-item">
+                            <div class="radar-label">迁徙倾向</div>
+                            <div class="radar-bar-bg">
+                                <div class="radar-bar-fill" style="width:65%;background:var(--accent-rose)"></div>
+                            </div>
+                            <div class="radar-val" style="color:var(--accent-rose)">65</div>
+                        </div>
+                    </div>
+
+                    <div
+                        style="margin-top:16px;padding:14px;background:rgba(16,185,129,.06);border-radius:12px;border:1px solid rgba(16,185,129,.2)">
+                        <div style="font-weight:700;font-size:.82rem;color:var(--accent-emerald);margin-bottom:6px">💎
+                            系统研判</div>
+                        <div style="font-size:.78rem;color:var(--text-secondary);line-height:1.6">
+                            Weber博士正急需高质量实验数据做模型微调——深圳团队恰好拥有全球前三的实验数据积累。这不是"找大牛挂名"，而是<strong
+                                style="color:var(--accent-emerald)">真正的资源互补、强强联手</strong>。</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Connection Path -->
+            <div class="section-head">🔗 连通路径证据链</div>
+            <div class="section-desc">深圳大学团队 → Dr. Klaus Weber 的3条非显性学术连通路径</div>
+
+            <div class="path-card active">
+                <div class="path-header">
+                    <div class="path-title">路径一：顶级会议互引通道</div>
+                    <div class="path-score" style="color:var(--accent-purple)">强度 94</div>
+                </div>
+                <div class="path-chain">
+                    <span class="path-node"
+                        style="background:rgba(99,102,241,.2);color:var(--accent-blue)">深圳大学团队</span>
+                    <span class="path-arrow">→ 互引 →</span>
+                    <span class="path-node" style="background:rgba(139,92,246,.2);color:var(--accent-purple)">QIP
+                        2024会议</span>
+                    <span class="path-arrow">→ 同session →</span>
+                    <span class="path-node" style="background:rgba(139,92,246,.2);color:var(--accent-purple)">AQIS
+                        2025会议</span>
+                    <span class="path-arrow">→ 互引 →</span>
+                    <span class="path-node" style="background:rgba(16,185,129,.2);color:var(--accent-emerald)">Dr.
+                        Weber</span>
+                </div>
+                <div class="path-evidence">📄 证据：深圳团队在QIP 2024发表的论文被Weber引用<strong>3次</strong>；Weber在AQIS
+                    2025的论文被深圳团队引用<strong>2次</strong>。两团队在2023-2025年间形成了密集的<strong>互引互通</strong>网络，但从未合著论文。</div>
+            </div>
+
+            <div class="path-card">
+                <div class="path-header">
+                    <div class="path-title">路径二：代码共享平台交互</div>
+                    <div class="path-score" style="color:var(--accent-cyan)">强度 72</div>
+                </div>
+                <div class="path-chain">
+                    <span class="path-node"
+                        style="background:rgba(99,102,241,.2);color:var(--accent-blue)">深圳团队GitHub</span>
+                    <span class="path-arrow">→ fork →</span>
+                    <span class="path-node"
+                        style="background:rgba(6,182,212,.2);color:var(--accent-cyan)">QuantumLib</span>
+                    <span class="path-arrow">→ contributor →</span>
+                    <span class="path-node"
+                        style="background:rgba(16,185,129,.2);color:var(--accent-emerald)">Weber实验室</span>
+                </div>
+                <div class="path-evidence">📄
+                    证据：Weber实验室是QuantumLib的核心贡献者，深圳团队fork了该库并提交了<strong>7个PR</strong>，其中<strong>3个被Weber本人review并合并</strong>。
+                </div>
+            </div>
+
+            <div class="path-card">
+                <div class="path-header">
+                    <div class="path-title">路径三：导师网络桥接</div>
+                    <div class="path-score" style="color:var(--accent-amber)">强度 58</div>
+                </div>
+                <div class="path-chain">
+                    <span class="path-node"
+                        style="background:rgba(99,102,241,.2);color:var(--accent-blue)">深圳团队PI</span>
+                    <span class="path-arrow">→ 同门 →</span>
+                    <span class="path-node" style="background:rgba(245,158,11,.2);color:var(--accent-amber)">Prof.
+                        Johnson (ETH)</span>
+                    <span class="path-arrow">→ 博后导师 →</span>
+                    <span class="path-node" style="background:rgba(16,185,129,.2);color:var(--accent-emerald)">Dr.
+                        Weber</span>
+                </div>
+                <div class="path-evidence">📄 证据：深圳团队PI与ETH的Johnson教授是同一博士导师（MIT Prof.
+                    Li）的门生；Weber曾在Johnson实验室完成博后训练。<strong>导师网络共享度 82%</strong>。</div>
+            </div>
+
+            <!-- Actions -->
+            <div style="display:flex;gap:12px;margin-top:24px;justify-content:center">
+                <button class="search-btn" style="background:var(--accent-emerald)"
+                    onclick="alert('已加入报告「量子计算研究院立项论证」第四章：人才班底可行性')">📋 加入立项报告</button>
+                <button class="search-btn" style="background:var(--accent-blue)"
+                    onclick="window.open('功能原型-Agent报告生成.html')">🤖 启动Agent生成报告</button>
+                <button class="search-btn" style="background:var(--accent-cyan)" onclick="alert('已导出完整连通路径分析PDF')">💾
+                    导出分析</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function startDiscovery() {
+            document.getElementById('statsRow').style.display = 'flex';
+            document.getElementById('results').style.display = 'block';
+            renderNetwork();
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function renderNetwork() {
+            const canvas = document.getElementById('networkCanvas');
+            const nodes = [
+                { id: 'src', label: '深圳大学团队', x: 12, y: 50, size: 64, color: '#6366f1', type: 'source' },
+                { id: 'tgt', label: 'Dr. Weber', x: 88, y: 50, size: 60, color: '#10b981', type: 'target' },
+                { id: 'm1', label: 'QIP会议', x: 35, y: 25, size: 40, color: '#8b5cf6' },
+                { id: 'm2', label: 'AQIS会议', x: 58, y: 22, size: 38, color: '#8b5cf6' },
+                { id: 'm3', label: 'QuantumLib', x: 50, y: 55, size: 36, color: '#06b6d4' },
+                { id: 'm4', label: 'Prof.Johnson', x: 42, y: 78, size: 34, color: '#f59e0b' },
+                { id: 'm5', label: 'Prof.Li(MIT)', x: 25, y: 72, size: 30, color: '#f59e0b' },
+                { id: 't2', label: 'Prof.Tanaka', x: 78, y: 28, size: 44, color: '#06b6d4' },
+                { id: 't3', label: 'Dr.Chen', x: 82, y: 75, size: 42, color: '#f59e0b' },
+            ];
+            const edges = [
+                { from: 'src', to: 'm1', color: '#8b5cf6', w: 3 }, { from: 'm1', to: 'm2', color: '#8b5cf6', w: 2 },
+                { from: 'm2', to: 'tgt', color: '#8b5cf6', w: 3 }, { from: 'src', to: 'm3', color: '#06b6d4', w: 2 },
+                { from: 'm3', to: 'tgt', color: '#06b6d4', w: 2 }, { from: 'src', to: 'm5', color: '#f59e0b', w: 1 },
+                { from: 'm5', to: 'm4', color: '#f59e0b', w: 1 }, { from: 'm4', to: 'tgt', color: '#f59e0b', w: 1 },
+                { from: 'm2', to: 't2', color: '#8b5cf644', w: 1 }, { from: 'm4', to: 't3', color: '#f59e0b44', w: 1 },
+            ];
+
+            edges.forEach(e => {
+                const a = nodes.find(n => n.id === e.from), b = nodes.find(n => n.id === e.to);
+                const dx = b.x - a.x, dy = b.y - a.y;
+                const len = Math.sqrt(dx * dx + dy * dy) * 4.8;
+                const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+                const line = document.createElement('div');
+                line.className = 'net-edge';
+                line.style.cssText = `left:${a.x}%;top:${a.y}%;width:${len}px;height:${e.w}px;transform:rotate(${angle}deg);background:${e.color};opacity:0.5;border-radius:2px`;
+                canvas.appendChild(line);
+            });
+
+            nodes.forEach(n => {
+                const el = document.createElement('div');
+                el.className = `net-node ${n.type || ''}`;
+                el.style.cssText = `left:calc(${n.x}% - ${n.size / 2}px);top:calc(${n.y}% - ${n.size / 2}px);width:${n.size}px;height:${n.size}px;background:${n.color}22;border:2px solid ${n.color};color:${n.color}`;
+                el.textContent = n.label.substring(0, 2);
+                el.title = n.label;
+                canvas.appendChild(el);
+                const lbl = document.createElement('div');
+                lbl.className = 'net-label';
+                lbl.style.cssText = `left:calc(${n.x}% - 48px);top:calc(${n.y}% + ${n.size / 2 + 4}px);width:96px;color:${n.color}`;
+                lbl.textContent = n.label;
+                canvas.appendChild(lbl);
+            });
+        }
+
+        function showDetail(idx) {
+            const details = [
+                { name: 'Dr. Klaus Weber', scores: [92, 95, 78, 85, 88, 65], note: 'Weber博士正急需高质量实验数据做模型微调——深圳团队恰好拥有全球前三的实验数据积累。' },
+                { name: 'Prof. Yuki Tanaka', scores: [72, 80, 65, 90, 60, 40], note: 'Tanaka教授在纠错码方面有互补优势，但迁徙意愿较低，更适合联合项目而非全职引进。' },
+                { name: 'Dr. Sarah Chen', scores: [55, 70, 50, 72, 82, 95], note: 'Chen博士回流意愿极高（配偶已在深圳），虽学术积累稍浅但成长潜力大，建议作为青年骨干引进。' },
+            ];
+            const d = details[idx];
+            const labels = ['互引频率', '研究互补性', '会议交集', '学术影响力', '合作意愿', '迁徙倾向'];
+            const colors = ['var(--accent-purple)', 'var(--accent-emerald)', 'var(--accent-cyan)', 'var(--accent-amber)', 'var(--accent-blue)', 'var(--accent-rose)'];
+            document.getElementById('detailPanel').querySelector('.card-title').innerHTML = `📊 ${d.name} · 合作可行性评估`;
+            document.getElementById('radarChart').innerHTML = labels.map((l, i) => `
+    <div class="radar-item"><div class="radar-label">${l}</div><div class="radar-bar-bg"><div class="radar-bar-fill" style="width:${d.scores[i]}%;background:${colors[i]}"></div></div><div class="radar-val" style="color:${colors[i]}">${d.scores[i]}</div></div>
+  `).join('');
+            document.getElementById('detailPanel').querySelector('[style*="emerald"]').querySelector('div:last-child').textContent = d.note;
+        }
+
+        window.addEventListener('load', () => setTimeout(startDiscovery, 500));
+    </script>
+</body>
+
+</html>

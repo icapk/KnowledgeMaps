@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        html {
+            background: #ffffff;
+        }
+
+        body {
+            width: 720pt;
+            height: 405pt;
+            margin: 0;
+            padding: 0;
+            background: #0B1929;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .topbar {
+            width: 720pt;
+            height: 3pt;
+            background: #10B981;
+        }
+
+        .header {
+            margin: 20pt 40pt 10pt;
+            display: flex;
+            align-items: center;
+            gap: 12pt;
+        }
+
+        .user-badge {
+            background: #132238;
+            border: 1pt solid #10B981;
+            border-radius: 8pt;
+            padding: 6pt 14pt;
+        }
+
+        .user-badge p {
+            color: #10B981;
+            font-size: 9pt;
+            margin: 0;
+            font-weight: bold;
+        }
+
+        .header h1 {
+            color: #ffffff;
+            font-size: 17pt;
+            margin: 0;
+        }
+
+        .subtitle {
+            margin: 0 40pt 12pt;
+        }
+
+        .subtitle p {
+            color: #7F8C8D;
+            font-size: 9pt;
+            margin: 0;
+        }
+
+        .flow {
+            display: flex;
+            margin: 0 30pt;
+            gap: 6pt;
+        }
+
+        .step {
+            flex: 1;
+            background: #132238;
+            border: 1pt solid rgba(16, 185, 129, 0.15);
+            border-radius: 8pt;
+            padding: 10pt;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .step-head {
+            display: flex;
+            align-items: center;
+            gap: 6pt;
+            margin-bottom: 6pt;
+        }
+
+        .step-num {
+            width: 22pt;
+            height: 22pt;
+            background: #10B981;
+            border-radius: 6pt;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .step-num p {
+            color: #ffffff;
+            font-size: 9pt;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .step-phase p {
+            color: #6EE7B7;
+            font-size: 8pt;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .step-action p {
+            color: #ffffff;
+            font-size: 7.5pt;
+            margin: 0 0 4pt 0;
+            font-weight: bold;
+        }
+
+        .step-sys p {
+            color: #7F8C8D;
+            font-size: 6.5pt;
+            margin: 0 0 6pt 0;
+            line-height: 1.4;
+        }
+
+        .step-value {
+            background: rgba(6, 182, 212, 0.1);
+            border: 1pt solid rgba(6, 182, 212, 0.25);
+            border-radius: 5pt;
+            padding: 5pt 7pt;
+            margin-top: auto;
+        }
+
+        .step-value p {
+            color: #06B6D4;
+            font-size: 6.5pt;
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        .compare {
+            display: flex;
+            margin: 12pt 40pt 0;
+            gap: 20pt;
+        }
+
+        .compare-item {
+            flex: 1;
+        }
+
+        .compare-label p {
+            color: #7F8C8D;
+            font-size: 7pt;
+            margin: 0 0 4pt 0;
+        }
+
+        .bar-old {
+            height: 6pt;
+            background: #E74C3C;
+            border-radius: 3pt;
+            margin-bottom: 3pt;
+        }
+
+        .bar-new {
+            height: 6pt;
+            background: #10B981;
+            border-radius: 3pt;
+            margin-bottom: 3pt;
+        }
+
+        .compare-val p {
+            color: #ffffff;
+            font-size: 8pt;
+            font-weight: bold;
+            margin: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="topbar"></div>
+    <div class="header">
+        <div class="user-badge">
+            <p>U4 王教授</p>
+        </div>
+        <h1>科研旅程：寻找全球合作者</h1>
+    </div>
+    <div class="subtitle">
+        <p>高校科研人员视角 — 从"人找文献"到"文献找人+AI帮你读"</p>
+    </div>
+    <div class="flow">
+        <div class="step">
+            <div class="step-head">
+                <div class="step-num">
+                    <p>1</p>
+                </div>
+                <div class="step-phase">
+                    <p>语义检索</p>
+                </div>
+            </div>
+            <div class="step-action">
+                <p>1.5亿文献语义搜索</p>
+            </div>
+            <div class="step-sys">
+                <p>理解语义而非关键词，40+语言跨语种召回</p>
+            </div>
+            <div class="step-value">
+                <p>不漏掉任何一篇相关文献，跨语言零障碍</p>
+            </div>
+        </div>
+        <div class="step">
+            <div class="step-head">
+                <div class="step-num">
+                    <p>2</p>
+                </div>
+                <div class="step-phase">
+                    <p>学者发现</p>
+                </div>
+            </div>
+            <div class="step-action">
+                <p>多维学者画像</p>
+            </div>
+            <div class="step-sys">
+                <p>h指数+论文趋势+兴趣演化+合作网络+地理迁徙</p>
+            </div>
+            <div class="step-value">
+                <p>发现学者兴趣正在漂移——及时抓住合作窗口</p>
+            </div>
+        </div>
+        <div class="step">
+            <div class="step-head">
+                <div class="step-num">
+                    <p>3</p>
+                </div>
+                <div class="step-phase">
+                    <p>全息阅读</p>
+                </div>
+            </div>
+            <div class="step-action">
+                <p>AI论文全息提取</p>
+            </div>
+            <div class="step-sys">
+                <p>自动提取摘要/图表/方法/创新点/局限性/未来方向</p>
+            </div>
+            <div class="step-value">
+                <p>3篇论文对比阅读从3小时缩短到30分钟</p>
+            </div>
+        </div>
+        <div class="step">
+            <div class="step-head">
+                <div class="step-num">
+                    <p>4</p>
+                </div>
+                <div class="step-phase">
+                    <p>主动推送</p>
+                </div>
+            </div>
+            <div class="step-action">
+                <p>每日新论文推荐</p>
+            </div>
+            <div class="step-sys">
+                <p>系统根据订阅标签，新论文发表当天推送</p>
+            </div>
+            <div class="step-value">
+                <p>论文找人——再也不需要每天主动搜索</p>
+            </div>
+        </div>
+        <div class="step">
+            <div class="step-head">
+                <div class="step-num">
+                    <p>5</p>
+                </div>
+                <div class="step-phase">
+                    <p>社区协作</p>
+                </div>
+            </div>
+            <div class="step-action">
+                <p>数据社区分享</p>
+            </div>
+            <div class="step-sys">
+                <p>社区互助+评论+成果分享+AI安全审核</p>
+            </div>
+            <div class="step-value">
+                <p>问题发出去，答案找上来</p>
+            </div>
+        </div>
+    </div>
+    <div class="compare">
+        <div class="compare-item">
+            <div class="compare-label">
+                <p>传统方式</p>
+            </div>
+            <div class="bar-old" style="width: 100%;"></div>
+            <div class="compare-val">
+                <p>每天3小时搜索+阅读文献，合作者靠开会偶遇</p>
+            </div>
+        </div>
+        <div class="compare-item">
+            <div class="compare-label">
+                <p>本系统</p>
+            </div>
+            <div class="bar-new" style="width: 17%;"></div>
+            <div class="compare-val">
+                <p>AI推送+全息阅读30分钟，合作者精准推荐</p>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

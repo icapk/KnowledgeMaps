@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent自动报告生成 — 科技情报挖掘系统</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0e1a;
+            --bg-secondary: #111827;
+            --bg-card: #1a2035;
+            --border: rgba(99, 102, 241, .15);
+            --border-active: rgba(99, 102, 241, .5);
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --accent-blue: #6366f1;
+            --accent-purple: #8b5cf6;
+            --accent-cyan: #06b6d4;
+            --accent-emerald: #10b981;
+            --accent-amber: #f59e0b;
+            --accent-rose: #f43f5e;
+            --gradient-hero: linear-gradient(135deg, #6366f1, #8b5cf6, #06b6d4);
+            --shadow-glow: 0 0 40px rgba(99, 102, 241, .15)
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        body {
+            font-family: 'Noto Sans SC', 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.7
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            padding: 20px 40px;
+            border-bottom: 1px solid var(--border)
+        }
+
+        .header .logo {
+            font-size: 1.1rem;
+            font-weight: 700;
+            background: var(--gradient-hero);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent
+        }
+
+        .header .breadcrumb {
+            margin-left: 16px;
+            color: var(--text-muted);
+            font-size: .85rem
+        }
+
+        .header .user-badge {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(244, 63, 94, .1);
+            border: 1px solid rgba(244, 63, 94, .2);
+            padding: 6px 16px;
+            border-radius: 100px;
+            font-size: .82rem;
+            color: var(--accent-rose)
+        }
+
+        .page-hero {
+            padding: 48px 40px 32px;
+            position: relative;
+            overflow: hidden
+        }
+
+        .page-hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -30%;
+            width: 160%;
+            height: 200%;
+            background: radial-gradient(ellipse at 50% 50%, rgba(6, 182, 212, .1) 0%, transparent 60%);
+            animation: pulse 6s ease-in-out infinite alternate
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: translate(0, 0)
+            }
+
+            100% {
+                transform: translate(-3%, 2%)
+            }
+        }
+
+        .page-hero h1 {
+            position: relative;
+            font-size: 2rem;
+            font-weight: 800;
+            background: var(--gradient-hero);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px
+        }
+
+        .page-hero p {
+            position: relative;
+            color: var(--text-secondary);
+            font-size: .95rem;
+            max-width: 800px
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 40px 60px
+        }
+
+        .grid-sidebar {
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            gap: 24px
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            transition: all .3s
+        }
+
+        .card-title {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 6px;
+            font-size: .72rem;
+            font-weight: 600
+        }
+
+        .badge-blue {
+            background: rgba(99, 102, 241, .15);
+            color: var(--accent-blue)
+        }
+
+        .badge-emerald {
+            background: rgba(16, 185, 129, .15);
+            color: var(--accent-emerald)
+        }
+
+        .badge-amber {
+            background: rgba(245, 158, 11, .15);
+            color: var(--accent-amber)
+        }
+
+        .badge-rose {
+            background: rgba(244, 63, 94, .15);
+            color: var(--accent-rose)
+        }
+
+        .badge-cyan {
+            background: rgba(6, 182, 212, .15);
+            color: var(--accent-cyan)
+        }
+
+        .badge-purple {
+            background: rgba(139, 92, 246, .15);
+            color: var(--accent-purple)
+        }
+
+        /* Chat input */
+        .chat-input-area {
+            margin-bottom: 24px
+        }
+
+        .chat-textarea {
+            width: 100%;
+            padding: 16px;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+            color: var(--text-primary);
+            font-size: .9rem;
+            font-family: inherit;
+            resize: none;
+            outline: none;
+            height: 80px;
+            transition: border .3s
+        }
+
+        .chat-textarea:focus {
+            border-color: var(--accent-cyan)
+        }
+
+        .chat-btn {
+            width: 100%;
+            padding: 14px;
+            border-radius: 14px;
+            border: none;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+            color: #fff;
+            font-size: .95rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all .3s
+        }
+
+        .chat-btn:hover {
+            box-shadow: 0 4px 24px rgba(6, 182, 212, .4)
+        }
+
+        .chat-btn:disabled {
+            opacity: .5;
+            cursor: not-allowed
+        }
+
+        /* Progress */
+        .progress-area {
+            margin-bottom: 24px
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px
+        }
+
+        .progress-title {
+            font-size: .85rem;
+            font-weight: 600
+        }
+
+        .progress-pct {
+            font-size: .85rem;
+            font-weight: 700;
+            color: var(--accent-cyan)
+        }
+
+        .progress-bar-bg {
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, .06);
+            overflow: hidden;
+            margin-bottom: 16px
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            border-radius: 3px;
+            background: var(--gradient-hero);
+            transition: width .5s ease
+        }
+
+        /* Tool call log */
+        .tool-log {
+            max-height: 400px;
+            overflow-y: auto
+        }
+
+        .tool-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, .03);
+            font-size: .78rem
+        }
+
+        .tool-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: .85rem;
+            flex-shrink: 0
+        }
+
+        .tool-name {
+            font-weight: 600;
+            color: var(--text-primary)
+        }
+
+        .tool-detail {
+            color: var(--text-secondary);
+            margin-top: 2px
+        }
+
+        .tool-status {
+            margin-left: auto;
+            flex-shrink: 0
+        }
+
+        /* Report */
+        .report {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden
+        }
+
+        .report-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between
+        }
+
+        .report-title {
+            font-size: 1.1rem;
+            font-weight: 700
+        }
+
+        .report-meta {
+            font-size: .75rem;
+            color: var(--text-muted)
+        }
+
+        .report-actions {
+            display: flex;
+            gap: 8px
+        }
+
+        .report-action-btn {
+            padding: 8px 16px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: .78rem;
+            cursor: pointer;
+            transition: all .3s
+        }
+
+        .report-action-btn:hover {
+            border-color: var(--accent-blue);
+            color: var(--text-primary)
+        }
+
+        .report-action-btn.primary {
+            background: var(--accent-blue);
+            border-color: var(--accent-blue);
+            color: #fff
+        }
+
+        .report-body {
+            padding: 28px;
+            font-size: .88rem;
+            line-height: 1.9
+        }
+
+        .report-body h2 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin: 24px 0 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, .06);
+            color: var(--accent-cyan)
+        }
+
+        .report-body h2:first-child {
+            margin-top: 0
+        }
+
+        .report-body h3 {
+            font-size: .95rem;
+            font-weight: 600;
+            margin: 16px 0 8px;
+            color: var(--text-primary)
+        }
+
+        .report-body p {
+            color: var(--text-secondary);
+            margin-bottom: 12px
+        }
+
+        .report-body .source-link {
+            color: var(--accent-blue);
+            font-size: .75rem;
+            cursor: pointer;
+            text-decoration: underline
+        }
+
+        .report-body .source-link:hover {
+            color: var(--accent-cyan)
+        }
+
+        .report-body .highlight-box {
+            padding: 14px 18px;
+            border-radius: 12px;
+            margin: 12px 0;
+            font-size: .82rem
+        }
+
+        .report-body .highlight-red {
+            background: rgba(244, 63, 94, .06);
+            border: 1px solid rgba(244, 63, 94, .2);
+            color: var(--text-secondary)
+        }
+
+        .report-body .highlight-red strong {
+            color: var(--accent-rose)
+        }
+
+        .report-body .highlight-green {
+            background: rgba(16, 185, 129, .06);
+            border: 1px solid rgba(16, 185, 129, .2);
+            color: var(--text-secondary)
+        }
+
+        .report-body .highlight-green strong {
+            color: var(--accent-emerald)
+        }
+
+        .report-body table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0;
+            font-size: .8rem
+        }
+
+        .report-body th,
+        .report-body td {
+            padding: 8px 12px;
+            border: 1px solid rgba(255, 255, 255, .06);
+            text-align: left
+        }
+
+        .report-body th {
+            background: rgba(99, 102, 241, .06);
+            font-weight: 600;
+            font-size: .75rem;
+            color: var(--text-secondary)
+        }
+
+        .report-body .figure {
+            text-align: center;
+            padding: 20px;
+            margin: 16px 0;
+            background: rgba(99, 102, 241, .03);
+            border-radius: 12px;
+            border: 1px dashed rgba(99, 102, 241, .15);
+            color: var(--text-muted);
+            font-size: .8rem
+        }
+
+        /* Source tooltip */
+        .source-tooltip {
+            position: fixed;
+            background: var(--bg-card);
+            border: 1px solid var(--accent-blue);
+            border-radius: 12px;
+            padding: 12px 16px;
+            font-size: .78rem;
+            max-width: 320px;
+            z-index: 100;
+            display: none;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, .6)
+        }
+
+        @media(max-width:900px) {
+            .grid-sidebar {
+                grid-template-columns: 1fr
+            }
+        }
+
+        ::-webkit-scrollbar {
+            width: 4px;
+            height: 4px
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, .1);
+            border-radius: 2px
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <div class="logo">科技情报挖掘系统</div>
+        <div class="breadcrumb">/ Agent智能体 / 报告自动生成</div>
+        <div class="user-badge">👔 张局长 · 科技局决策者</div>
+    </div>
+
+    <div class="page-hero">
+        <h1>🤖 Agent 智能报告生成</h1>
+        <p>输入战略命题，Agent自动规划分析路径、调用20+个MCP工具、经过多轮分析推理，30分钟内生成带溯源的深度报告</p>
+    </div>
+
+    <div class="container">
+        <div class="grid-sidebar">
+
+            <!-- Left Panel: Input & Tool Log -->
+            <div>
+                <div class="chat-input-area">
+                    <textarea class="chat-textarea"
+                        id="chatInput">论证在深圳建设量子计算研究院的可行性——分析全球竞争格局、深圳的技术空白、潜在核心人才班底</textarea>
+                    <button class="chat-btn" id="startBtn" onclick="startGeneration()">🚀 启动 Agent 生成报告</button>
+                </div>
+
+                <!-- Progress -->
+                <div class="progress-area" id="progressArea" style="display:none">
+                    <div class="progress-header">
+                        <div class="progress-title">📡 Agent 工作中...</div>
+                        <div class="progress-pct" id="progressPct">0%</div>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill" id="progressBar" style="width:0%"></div>
+                    </div>
+                </div>
+
+                <!-- Tool Call Log -->
+                <div class="card" id="toolLogCard" style="display:none">
+                    <div class="card-title">🔧 MCP工具调用日志 <span class="badge badge-cyan" id="toolCount">0/24轮</span>
+                    </div>
+                    <div class="tool-log" id="toolLog"></div>
+                </div>
+            </div>
+
+            <!-- Right Panel: Report -->
+            <div>
+                <div class="report" id="reportPanel" style="display:none">
+                    <div class="report-header">
+                        <div>
+                            <div class="report-title">📄 量子计算研究院立项可行性论证报告</div>
+                            <div class="report-meta">Agent自动生成 · 24轮MCP工具调用 · 耗时 28分钟 · 溯源引用 47条</div>
+                        </div>
+                        <div class="report-actions">
+                            <button class="report-action-btn" onclick="alert('已导出Word文档至桌面')">📥 导出Word</button>
+                            <button class="report-action-btn" onclick="alert('已导出PDF至桌面')">📥 导出PDF</button>
+                            <button class="report-action-btn primary" onclick="alert('报告已提交审批流程')">✅ 提交审批</button>
+                        </div>
+                    </div>
+                    <div class="report-body" id="reportBody"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const toolCalls = [
+            { icon: '🔍', name: '论文检索MCP', detail: '检索"quantum computing fault tolerance"相关论文（全球1.5亿文献库）', color: 'var(--accent-blue)', time: '45s' },
+            { icon: '📑', name: '专利检索MCP', detail: '检索量子计算相关专利（全球1亿专利库）', color: 'var(--accent-purple)', time: '38s' },
+            { icon: '🔗', name: '引用溯源网络', detail: '构建量子计算引用关系图谱，聚类8个技术子方向', color: 'var(--accent-cyan)', time: '2m 12s' },
+            { icon: '🗺️', name: '地域归属分析', detail: '穿透作者机构归属，统计42个城市研究实力', color: 'var(--accent-amber)', time: '1m 05s' },
+            { icon: '🔴', name: '空白诊断引擎', detail: '发现深圳在"容错核心算法"方向存在绝对空白', color: 'var(--accent-rose)', time: '28s' },
+            { icon: '📊', name: '机构对标MCP', detail: '对比深圳vs合肥vs北京vs波士顿的技术实力', color: 'var(--accent-blue)', time: '52s' },
+            { icon: '🕸️', name: '隐含关联挖掘', detail: '扫描2.4M学者节点，发现6条隐含连通路径', color: 'var(--accent-purple)', time: '3m 20s' },
+            { icon: '👤', name: '学者画像MCP', detail: '生成Dr.Weber/Prof.Tanaka/Dr.Chen多维画像', color: 'var(--accent-cyan)', time: '1m 15s' },
+            { icon: '🎯', name: '合作可行性评估', detail: '计算3位候选人的合作可行性综合评分', color: 'var(--accent-emerald)', time: '42s' },
+            { icon: '📈', name: '技术生命周期', detail: '分析容错算法的技术演化阶段和红利窗口', color: 'var(--accent-amber)', time: '35s' },
+            { icon: '🌐', name: '网页检索MCP', detail: '补充检索最新量子计算产业动态与政策', color: 'var(--accent-blue)', time: '28s' },
+            { icon: '💰', name: '预算测算模型', detail: '基于同类研究院参考，测算建设运营成本', color: 'var(--accent-amber)', time: '18s' },
+            { icon: '⚠️', name: '风险评估引擎', detail: '识别立项风险因子并评估影响程度', color: 'var(--accent-rose)', time: '22s' },
+            { icon: '📝', name: '报告综合生成', detail: '整合24轮分析结果，生成结构化报告初稿', color: 'var(--accent-emerald)', time: '4m 30s' },
+            { icon: '🔎', name: '溯源标注引擎', detail: '为报告中47条结论逐一附加数据溯源链接', color: 'var(--accent-cyan)', time: '1m 48s' },
+            { icon: '✅', name: '自审验证', detail: '交叉验证关键数据点的一致性和准确性', color: 'var(--accent-emerald)', time: '55s' },
+        ];
+
+        const reportHTML = `
+<h2>一、量子计算领域全球态势概述</h2>
+<p>截至2026年3月，全球量子计算领域累计发表核心论文 <strong>57,600篇</strong>，相关专利 <strong>18,200件</strong>。研究力量主要集中在美国（波士顿、圣巴巴拉）、中国（合肥、北京）、欧洲（慕尼黑、苏黎世）三大阵营。<span class="source-link">[溯源: 论文检索MCP #R1-R12]</span></p>
+<p>系统通过引用关系图谱自动聚类，将该领域细分为 <strong>8个技术子方向</strong>：超导量子比特、离子阱量子计算、光量子计算、量子纠错码、容错核心算法、量子软件与编译、量子测量与传感、量子通信与密钥。<span class="source-link">[溯源: 引用溯源网络 #A1]</span></p>
+
+<div class="figure">📊 [图1] 量子计算8大技术子方向全球热力图 — 引用溯源网络自动生成</div>
+
+<h2>二、深圳技术实力评估与空白诊断</h2>
+<h3>2.1 深圳的优势方向</h3>
+<p>深圳在<strong>量子测量与传感</strong>（全球第3，占比22.1%）和<strong>量子通信与密钥</strong>（全球第4，占比19.8%）方向具有坚实基础，主要贡献来自南方科技大学和鹏城实验室。<span class="source-link">[溯源: 地域归属分析 #G1-G3]</span></p>
+
+<h3>2.2 关键空白：容错核心算法</h3>
+<div class="highlight-box highlight-red">
+  <strong>🚨 空白诊断结论：</strong>深圳在"容错核心算法"子方向的全球核心论文贡献率仅为 <strong>0.3%</strong>，被引率 <strong>0.1%</strong>，属于<strong>绝对底盘缺陷</strong>。该方向恰恰是量子计算从实验走向实用的最关键瓶颈，近3年论文增长率高达47%，处于技术红利期。<span class="source-link">[溯源: 空白诊断引擎 #D1]</span>
+</div>
+
+<table>
+  <thead><tr><th>技术子方向</th><th>全球排名</th><th>深圳占比</th><th>年增长率</th><th>研判</th></tr></thead>
+  <tbody>
+    <tr><td>量子测量与传感</td><td>第3</td><td>22.1%</td><td>22%</td><td style="color:#10b981">✅ 优势</td></tr>
+    <tr><td>量子通信与密钥</td><td>第4</td><td>19.8%</td><td>18%</td><td style="color:#10b981">✅ 优势</td></tr>
+    <tr><td>超导量子比特</td><td>第3</td><td>18.5%</td><td>32%</td><td style="color:#06b6d4">🔹 中等</td></tr>
+    <tr style="background:rgba(244,63,94,.06)"><td style="color:#f43f5e;font-weight:700">容错核心算法</td><td style="color:#f43f5e">无排名</td><td style="color:#f43f5e">0.3%</td><td>47%</td><td style="color:#f43f5e">🔴 空白</td></tr>
+  </tbody>
+</table>
+
+<h2>三、全球竞争格局对标</h2>
+<p>容错核心算法方向全球前5团队：MIT Quantum Lab（被引4,820）、ETH Zürich（被引3,950）、中科大（被引3,420）、Google Quantum AI（被引3,180）、Oxford（被引2,860）。深圳<strong>无团队进入前50</strong>。<span class="source-link">[溯源: 机构对标MCP #B1-B5]</span></p>
+<p>合肥（中科大）和北京（北大）已在该方向形成规模化布局，若深圳不在2-4年窗口期内建院补足，将被拉开代差。<span class="source-link">[溯源: 技术生命周期 #T1]</span></p>
+
+<h2>四、人才班底可行性论证</h2>
+<h3>4.1 隐含关联挖掘发现</h3>
+<p>系统扫描240万学者节点和1,870万关系边后，发现深圳本土团队与全球容错算法领域之间存在 <strong>6条非显性学术连通路径</strong>，其中3位学者具有<strong>高合作可行性</strong>：<span class="source-link">[溯源: 隐含关联挖掘 #H1-H6]</span></p>
+
+<table>
+  <thead><tr><th>候选人</th><th>机构</th><th>隐含连通强度</th><th>合作可行性</th><th>关键优势</th></tr></thead>
+  <tbody>
+    <tr><td style="font-weight:700">Dr. Klaus Weber</td><td>慕尼黑工大</td><td>94</td><td style="color:#10b981;font-weight:700">92分</td><td>研究高度互补 · 急需深圳实验数据</td></tr>
+    <tr><td>Prof. Yuki Tanaka</td><td>东京大学</td><td>72</td><td style="color:#06b6d4">78分</td><td>纠错码互补 · 适合联合项目</td></tr>
+    <tr><td>Dr. Sarah Chen</td><td>MIT</td><td>58</td><td style="color:#f59e0b">71分</td><td>华裔 · 回流意愿极高 · 青年骨干</td></tr>
+  </tbody>
+</table>
+
+<div class="highlight-box highlight-green">
+  <strong>💎 核心发现：</strong>深圳大学量子团队在过去三年的顶级会议中与Weber实验室形成了密集的"互引互通"网络，虽从未合著论文，但学术连通强度高达94。Weber博士<strong>正急需高质量实验数据做模型微调</strong>——而深圳团队恰好拥有全球前三的实验数据积累。这意味着：<strong>"研究院挂牌即有接盘手"</strong>。<span class="source-link">[溯源: 合作可行性评估 #F1]</span>
+</div>
+
+<h2>五、建设成本与风险评估</h2>
+<p>参考合肥量子信息中心和北京量子科学研究院的建设经验，预估投入约 <strong>8-12亿元</strong>（含设备采购3-5亿、人才引进2-3亿、基建1-2亿、运营储备2亿）。预期5年内产出核心专利≥50件、顶刊论文≥200篇。<span class="source-link">[溯源: 预算测算模型 #C1-C2]</span></p>
+<p>主要风险：①人才引进不确定性（已通过隐含关联挖掘大幅降低）；②技术路线变更风险（容错算法处于爆发增长期，路线基本确定）；③国际合作政策风险（建议优先锁定华裔回流人才）。<span class="source-link">[溯源: 风险评估引擎 #E1-E3]</span></p>
+
+<h2>六、结论与建议</h2>
+<div class="highlight-box highlight-green">
+  <strong>✅ Agent综合研判：强烈建议立项。</strong><br><br>
+  1. <strong>必要性充分</strong>：深圳在量子计算最关键的"容错核心算法"方向存在绝对空白，不补将被合肥、北京拉开代差<br>
+  2. <strong>可行性明确</strong>：隐含关联挖掘证明本土团队与全球顶尖力量之间存在真实连通路径，"研究院挂牌即有接盘手"<br>
+  3. <strong>窗口期紧迫</strong>：2-4年红利窗口，先发优势决定未来10年格局<br>
+  4. <strong>投入产出合理</strong>：10亿级投入换取深圳在量子计算核心赛道的战略卡位<br><br>
+  <span style="font-size:.78rem;color:var(--text-muted)">以上6章47条结论，每条均附带数据溯源链接，可逐一追溯至原始论文/专利/图谱节点。</span>
+</div>
+`;
+
+        let currentTool = 0;
+        let animTimer = null;
+
+        function startGeneration() {
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('startBtn').textContent = '⏳ Agent 工作中...';
+            document.getElementById('progressArea').style.display = 'block';
+            document.getElementById('toolLogCard').style.display = 'block';
+            currentTool = 0;
+            animTimer = setInterval(addToolCall, 600);
+        }
+
+        function addToolCall() {
+            if (currentTool >= toolCalls.length) {
+                clearInterval(animTimer);
+                showReport();
+                return;
+            }
+            const t = toolCalls[currentTool];
+            const log = document.getElementById('toolLog');
+            const item = document.createElement('div');
+            item.className = 'tool-item';
+            item.innerHTML = `
+    <div class="tool-icon" style="background:${t.color}22;color:${t.color}">${t.icon}</div>
+    <div><div class="tool-name">${t.name}</div><div class="tool-detail">${t.detail}</div></div>
+    <div class="tool-status"><span class="badge badge-emerald">✅ ${t.time}</span></div>
+  `;
+            item.style.animation = 'fadeIn .3s ease';
+            log.insertBefore(item, log.firstChild);
+            currentTool++;
+            const pct = Math.round((currentTool / toolCalls.length) * 100);
+            document.getElementById('progressPct').textContent = pct + '%';
+            document.getElementById('progressBar').style.width = pct + '%';
+            document.getElementById('toolCount').textContent = `${currentTool}/${toolCalls.length}轮`;
+            log.scrollTop = 0;
+        }
+
+        function showReport() {
+            document.getElementById('startBtn').textContent = '✅ 报告生成完毕';
+            document.getElementById('reportPanel').style.display = 'block';
+            document.getElementById('reportPanel').style.animation = 'fadeIn .6s ease';
+            document.getElementById('reportBody').innerHTML = reportHTML;
+            document.getElementById('reportPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            // Source link hover
+            document.querySelectorAll('.source-link').forEach(el => {
+                el.addEventListener('click', e => {
+                    alert('溯源跳转：' + el.textContent + '\n→ 跳转到底层数据源（论文DOI / 专利号 / 图谱节点）');
+                });
+            });
+        }
+
+        @keyframes fadeIn { from{ opacity: 0; transform: translateY(8px) } to{ opacity: 1; transform: translateY(0) } }
+    </script>
+    <style>
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+    </style>
+</body>
+
+</html>

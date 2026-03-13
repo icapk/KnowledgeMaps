@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>引用溯源网络 — 科技情报挖掘系统</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0e1a;
+            --bg-secondary: #111827;
+            --bg-card: #1a2035;
+            --border: rgba(99, 102, 241, 0.15);
+            --border-active: rgba(99, 102, 241, 0.5);
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --accent-blue: #6366f1;
+            --accent-purple: #8b5cf6;
+            --accent-cyan: #06b6d4;
+            --accent-emerald: #10b981;
+            --accent-amber: #f59e0b;
+            --accent-rose: #f43f5e;
+            --gradient-hero: linear-gradient(135deg, #6366f1, #8b5cf6, #06b6d4);
+            --shadow-glow: 0 0 40px rgba(99, 102, 241, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans SC', 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.7;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            align-items: center;
+            padding: 20px 40px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .header .logo {
+            font-size: 1.1rem;
+            font-weight: 700;
+            background: var(--gradient-hero);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header .breadcrumb {
+            margin-left: 16px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .header .user-badge {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(244, 63, 94, 0.1);
+            border: 1px solid rgba(244, 63, 94, 0.2);
+            padding: 6px 16px;
+            border-radius: 100px;
+            font-size: 0.82rem;
+            color: var(--accent-rose);
+        }
+
+        /* Hero */
+        .page-hero {
+            padding: 48px 40px 32px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .page-hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -30%;
+            width: 160%;
+            height: 200%;
+            background: radial-gradient(ellipse at 40% 50%, rgba(99, 102, 241, 0.1) 0%, transparent 60%);
+            animation: pulse 6s ease-in-out infinite alternate;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: translate(0, 0)
+            }
+
+            100% {
+                transform: translate(-3%, 2%)
+            }
+        }
+
+        .page-hero h1 {
+            position: relative;
+            font-size: 2rem;
+            font-weight: 800;
+            background: var(--gradient-hero);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+
+        .page-hero p {
+            position: relative;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            max-width: 800px;
+        }
+
+        /* Layout */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 40px 60px;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            transition: all 0.3s;
+        }
+
+        .card:hover {
+            border-color: var(--border-active);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .card-title {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-subtitle {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-weight: 600;
+        }
+
+        .badge-blue {
+            background: rgba(99, 102, 241, 0.15);
+            color: var(--accent-blue);
+        }
+
+        .badge-rose {
+            background: rgba(244, 63, 94, 0.15);
+            color: var(--accent-rose);
+        }
+
+        .badge-emerald {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--accent-emerald);
+        }
+
+        .badge-amber {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--accent-amber);
+        }
+
+        /* Search Bar */
+        .search-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 32px;
+            position: relative;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 14px 20px 14px 48px;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            outline: none;
+            transition: border 0.3s;
+        }
+
+        .search-input:focus {
+            border-color: var(--accent-blue);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.2rem;
+        }
+
+        .search-btn {
+            padding: 14px 28px;
+            border-radius: 14px;
+            border: none;
+            background: var(--accent-blue);
+            color: #fff;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .search-btn:hover {
+            background: #5558e6;
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        /* Heatmap */
+        .heatmap {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.78rem;
+        }
+
+        .heatmap th,
+        .heatmap td {
+            padding: 10px 8px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .heatmap th {
+            background: rgba(99, 102, 241, 0.08);
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-size: 0.72rem;
+        }
+
+        .heatmap td:first-child {
+            text-align: left;
+            font-weight: 600;
+            min-width: 100px;
+        }
+
+        .heat-cell {
+            display: inline-block;
+            width: 100%;
+            padding: 6px 0;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.75rem;
+        }
+
+        /* Node graph */
+        .graph-container {
+            height: 360px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .graph-node {
+            position: absolute;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            z-index: 2;
+        }
+
+        .graph-node:hover {
+            transform: scale(1.15);
+            z-index: 10;
+        }
+
+        .graph-label {
+            position: absolute;
+            font-size: 0.68rem;
+            color: var(--text-secondary);
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .graph-line {
+            position: absolute;
+            height: 2px;
+            transform-origin: left center;
+            z-index: 1;
+        }
+
+        /* Cluster cards */
+        .cluster-card {
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.02);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .cluster-card:hover {
+            border-color: var(--accent-blue);
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        .cluster-card.blank {
+            border-color: rgba(244, 63, 94, 0.4);
+            background: rgba(244, 63, 94, 0.05);
+        }
+
+        .cluster-name {
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-bottom: 4px;
+        }
+
+        .cluster-stat {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .cluster-bar {
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.06);
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .cluster-bar-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 1s ease;
+        }
+
+        /* Stats row */
+        .stats-row {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-item {
+            flex: 1;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-num {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: var(--gradient-hero);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        /* Detail panel */
+        .detail-panel {
+            background: rgba(99, 102, 241, 0.04);
+            border: 1px solid rgba(99, 102, 241, 0.15);
+            border-radius: 16px;
+            padding: 24px;
+            margin-top: 16px;
+        }
+
+        .detail-title {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .paper-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            font-size: 0.82rem;
+        }
+
+        .paper-item:last-child {
+            border: none;
+        }
+
+        .paper-rank {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        .paper-title {
+            flex: 1;
+            color: var(--text-primary);
+        }
+
+        .paper-cite {
+            font-size: 0.72rem;
+            color: var(--accent-amber);
+            white-space: nowrap;
+        }
+
+        /* Tooltip */
+        .tooltip {
+            position: fixed;
+            background: var(--bg-card);
+            border: 1px solid var(--border-active);
+            border-radius: 12px;
+            padding: 14px 18px;
+            font-size: 0.8rem;
+            max-width: 280px;
+            z-index: 100;
+            pointer-events: none;
+            display: none;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Section title */
+        .section-head {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin: 32px 0 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-desc {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin-bottom: 20px;
+        }
+
+        /* Blank alert */
+        .blank-alert {
+            background: rgba(244, 63, 94, 0.08);
+            border: 1px solid rgba(244, 63, 94, 0.3);
+            border-radius: 14px;
+            padding: 20px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+        }
+
+        .blank-alert-icon {
+            font-size: 2rem;
+            flex-shrink: 0;
+        }
+
+        .blank-alert h3 {
+            font-size: 0.95rem;
+            color: var(--accent-rose);
+            margin-bottom: 4px;
+        }
+
+        .blank-alert p {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+        }
+
+        /* Timeline */
+        .timeline {
+            position: relative;
+            padding-left: 28px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 8px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: rgba(99, 102, 241, 0.2);
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 16px;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -24px;
+            top: 6px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid var(--accent-blue);
+            background: var(--bg-primary);
+        }
+
+        .timeline-year {
+            font-size: 0.72rem;
+            color: var(--accent-blue);
+            font-weight: 600;
+        }
+
+        .timeline-text {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+        }
+
+        @media(max-width:768px) {
+
+            .grid-2,
+            .grid-3 {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                padding: 0 16px 40px;
+            }
+
+            .page-hero {
+                padding: 32px 16px 24px;
+            }
+
+            .stats-row {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <div class="logo">科技情报挖掘系统</div>
+        <div class="breadcrumb">/ 智能化分析 / 引用溯源网络</div>
+        <div class="user-badge">👔 张局长 · 科技局决策者</div>
+    </div>
+
+    <div class="page-hero">
+        <h1>🔗 引用溯源网络</h1>
+        <p>沿引用链穿透1.5亿文献的底层脉络，精准定位技术空白与卡脖子环节，看清深圳在全球科技版图中的真实位置</p>
+    </div>
+
+    <div class="container">
+
+        <!-- Search -->
+        <div class="search-bar">
+            <span class="search-icon">🔍</span>
+            <input class="search-input" id="searchInput" value="量子计算" placeholder="输入技术领域关键词，如：量子计算、固态电池、合成生物学..." />
+            <button class="search-btn" onclick="startScan()">🚀 启动溯源扫描</button>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-row" id="statsRow" style="display:none">
+            <div class="stat-item">
+                <div class="stat-num" id="statPapers">0</div>
+                <div class="stat-label">相关论文</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-num" id="statPatents">0</div>
+                <div class="stat-label">相关专利</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-num" id="statClusters">0</div>
+                <div class="stat-label">技术子方向</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-num" id="statCities">0</div>
+                <div class="stat-label">参与城市/地区</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-num" id="statBlank">0</div>
+                <div class="stat-label">🔴 深圳空白区</div>
+            </div>
+        </div>
+
+        <!-- Results -->
+        <div id="results" style="display:none">
+
+            <!-- Section 1: Tech Route Clusters -->
+            <div class="section-head">📊 技术路线自动聚类</div>
+            <div class="section-desc">系统基于引用关系图谱，自动将量子计算领域论文聚类为 <strong>8个技术子方向</strong>，每个聚类由大模型提取代表性技术标签</div>
+
+            <div class="grid-3" id="clusterGrid"></div>
+
+            <!-- Section 2: Blank Alert -->
+            <div class="blank-alert" id="blankAlert">
+                <div class="blank-alert-icon">🚨</div>
+                <div>
+                    <h3>空白诊断：深圳在"容错核心算法"存在绝对空白</h3>
+                    <p>引用溯源分析显示，深圳在该子方向的全球核心论文贡献率为 <strong style="color:#f43f5e">0.3%</strong>，被引率仅 <strong
+                            style="color:#f43f5e">0.1%</strong>，远低于有效参与阈值。该方向目前处于技术红利期（近3年论文增长率
+                        47%），属于<strong>必须补足的底盘缺陷</strong>。</p>
+                </div>
+            </div>
+
+            <!-- Section 3: City Heatmap -->
+            <div class="section-head">🗺️ 技术子方向 × 城市 实力矩阵</div>
+            <div class="section-desc">深圳数据标红显示 · 颜色越深=实力越强 · 点击查看详情</div>
+
+            <div class="card" style="overflow-x:auto; margin-bottom:24px">
+                <table class="heatmap" id="heatmap"></table>
+            </div>
+
+            <!-- Section 4: Blank Detail -->
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">🔴 空白区域：容错核心算法</div>
+                    <div class="card-subtitle">全球领先团队排名 · 深圳无团队进入前50</div>
+                    <div id="topTeams"></div>
+                </div>
+                <div class="card">
+                    <div class="card-title">📈 技术生命周期</div>
+                    <div class="card-subtitle">容错核心算法处于爆发增长期（红利窗口 2-4 年）</div>
+                    <div class="timeline" id="timeline"></div>
+                    <div
+                        style="margin-top:16px; padding:12px; background:rgba(16,185,129,0.08); border-radius:10px; border:1px solid rgba(16,185,129,0.2);">
+                        <div style="font-size:0.82rem; color:var(--accent-emerald); font-weight:600;">💎 溯源结论</div>
+                        <div style="font-size:0.78rem; color:var(--text-secondary); margin-top:4px;">
+                            当前红利窗口约2-4年。若深圳在此期间建院布局，可占据先发优势；错过则将被合肥、北京拉开代差。</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 5: Deep Trace -->
+            <div class="section-head">🔬 深度溯源 · 引用链穿透</div>
+            <div class="section-desc">从"容错核心算法"出发，追溯底层引用链到知识源头</div>
+
+            <div class="card">
+                <div class="graph-container" id="graphContainer"></div>
+            </div>
+
+            <!-- Action buttons -->
+            <div style="display:flex; gap:12px; margin-top:24px; justify-content:center">
+                <button class="search-btn" style="background:var(--accent-emerald);"
+                    onclick="alert('已加入报告「量子计算研究院立项论证」第三章：技术空白诊断')">📋 加入立项报告</button>
+                <button class="search-btn" style="background:var(--accent-purple);"
+                    onclick="window.open('功能原型-隐含关联挖掘.html')">🔗 启动隐含关联挖掘</button>
+                <button class="search-btn" style="background:var(--accent-cyan);" onclick="alert('已导出PNG+SVG到桌面')">💾
+                    导出图表</button>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="tooltip" id="tooltip"></div>
+
+    <script>
+        // === Data ===
+        const clusters = [
+            { name: '超导量子比特', papers: 12400, growth: 32, sz: 18.5, rank: 3, color: '#6366f1' },
+            { name: '离子阱量子计算', papers: 8200, growth: 28, sz: 12.3, rank: 5, color: '#8b5cf6' },
+            { name: '光量子计算', papers: 6800, growth: 35, sz: 15.7, rank: 4, color: '#06b6d4' },
+            { name: '量子纠错码', papers: 5400, growth: 41, sz: 8.2, rank: 7, color: '#10b981' },
+            { name: '容错核心算法', papers: 4200, growth: 47, sz: 0.3, rank: '-', blank: true, color: '#f43f5e' },
+            { name: '量子软件与编译', papers: 3800, growth: 25, sz: 9.4, rank: 6, color: '#f59e0b' },
+            { name: '量子测量与传感', papers: 7600, growth: 22, sz: 22.1, rank: 3, color: '#ec4899' },
+            { name: '量子通信与密钥', papers: 9100, growth: 18, sz: 19.8, rank: 4, color: '#f97316' },
+        ];
+
+        const cities = ['波士顿', '合肥', '北京', '东京', '慕尼黑', '深圳', '上海', '悉尼'];
+        const heatData = [
+            [95, 82, 78, 65, 72, 18, 45, 38],
+            [72, 55, 62, 88, 45, 12, 32, 28],
+            [68, 42, 58, 52, 82, 16, 38, 55],
+            [58, 75, 65, 42, 55, 8, 48, 22],
+            [82, 68, 72, 55, 62, 0.3, 35, 18],
+            [45, 35, 42, 38, 55, 9, 52, 15],
+            [38, 78, 68, 45, 35, 22, 42, 28],
+            [52, 65, 72, 82, 42, 20, 55, 32],
+        ];
+
+        const topTeams = [
+            { rank: 1, name: 'MIT Quantum Lab', city: '波士顿', cite: 4820, color: '#f59e0b' },
+            { rank: 2, name: 'ETH Zürich QEC Group', city: '苏黎世', cite: 3950, color: '#94a3b8' },
+            { rank: 3, name: '中科大量子信息重点实验室', city: '合肥', cite: 3420, color: '#cd7f32' },
+            { rank: 4, name: 'Google Quantum AI', city: '圣巴巴拉', cite: 3180, color: '#64748b' },
+            { rank: 5, name: 'Oxford Quantum Computing', city: '牛津', cite: 2860, color: '#64748b' },
+            { rank: 6, name: 'IBM Quantum Research', city: '约克镇', cite: 2540, color: '#64748b' },
+            { rank: 7, name: '北京大学量子科学中心', city: '北京', cite: 2210, color: '#64748b' },
+        ];
+
+        const timelineData = [
+            { year: '2012', text: 'Shor码提出后首次实验验证（Nature），奠基性工作' },
+            { year: '2016', text: '表面码阈值突破，论文数开始快速增长' },
+            { year: '2019', text: 'Google量子优越性论文引爆全球研究热潮' },
+            { year: '2022', text: 'IBM 1121比特处理器驱动容错算法需求激增' },
+            { year: '2024', text: '实用化容错方案竞赛白热化，年增长率达47%' },
+            { year: '2026→', text: '红利窗口期：预计2-4年内确定主流技术路线' },
+        ];
+
+        // === Render ===
+        function startScan() {
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('statsRow').style.display = 'flex';
+
+            // Animate stats
+            animateNum('statPapers', 57600); animateNum('statPatents', 18200);
+            animateNum('statClusters', 8); animateNum('statCities', 42);
+            document.getElementById('statBlank').textContent = '1';
+            setTimeout(() => document.getElementById('statBlank').textContent = '1', 800);
+
+            renderClusters(); renderHeatmap(); renderTopTeams(); renderTimeline(); renderGraph();
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function animateNum(id, target) {
+            const el = document.getElementById(id);
+            let current = 0; const step = Math.ceil(target / 40);
+            const timer = setInterval(() => {
+                current += step; if (current >= target) { current = target; clearInterval(timer); }
+                el.textContent = current >= 1000 ? (current / 1000).toFixed(1) + 'K' : current;
+            }, 30);
+        }
+
+        function renderClusters() {
+            const grid = document.getElementById('clusterGrid');
+            grid.innerHTML = clusters.map(c => `
+    <div class="cluster-card ${c.blank ? 'blank' : ''}">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div class="cluster-name" style="color:${c.color}">${c.blank ? '🔴 ' : ''}${c.name}</div>
+        ${c.blank ? '<span class="badge badge-rose">绝对空白</span>' : `<span class="badge badge-blue">全球第${c.rank}</span>`}
+      </div>
+      <div class="cluster-stat">${(c.papers / 1000).toFixed(1)}K 论文 · 年增长 ${c.growth}% · 深圳占比 ${c.sz}%</div>
+      <div class="cluster-bar"><div class="cluster-bar-fill" style="width:${c.sz}%;background:${c.blank ? 'var(--accent-rose)' : c.color}"></div></div>
+    </div>
+  `).join('');
+        }
+
+        function renderHeatmap() {
+            const table = document.getElementById('heatmap');
+            let html = '<thead><tr><th>技术子方向</th>' + cities.map(c => `<th>${c}</th>`).join('') + '</tr></thead><tbody>';
+            clusters.forEach((c, i) => {
+                html += `<tr><td style="color:${c.color};font-size:0.78rem">${c.blank ? '🔴 ' : ''}${c.name}</td>`;
+                heatData[i].forEach((v, j) => {
+                    const isSZ = j === 5;
+                    let bg, fg;
+                    if (v < 5) { bg = 'rgba(244,63,94,0.25)'; fg = '#f43f5e'; }
+                    else if (v < 20) { bg = 'rgba(245,158,11,0.15)'; fg = '#f59e0b'; }
+                    else if (v < 50) { bg = 'rgba(99,102,241,0.15)'; fg = '#94a3b8'; }
+                    else if (v < 75) { bg = 'rgba(6,182,212,0.2)'; fg = '#06b6d4'; }
+                    else { bg = 'rgba(16,185,129,0.25)'; fg = '#10b981'; }
+                    const border = isSZ ? 'box-shadow:inset 0 0 0 2px var(--accent-rose);' : '';
+                    html += `<td><span class="heat-cell" style="background:${bg};color:${fg};${border}">${v}</span></td>`;
+                });
+                html += '</tr>';
+            });
+            html += '</tbody>';
+            table.innerHTML = html;
+        }
+
+        function renderTopTeams() {
+            const cont = document.getElementById('topTeams');
+            cont.innerHTML = topTeams.map(t => `
+    <div class="paper-item">
+      <div class="paper-rank" style="background:${t.color}22;color:${t.color}">${t.rank}</div>
+      <div class="paper-title">${t.name} <span style="font-size:0.72rem;color:var(--text-muted)">· ${t.city}</span></div>
+      <div class="paper-cite">被引 ${t.cite.toLocaleString()}</div>
+    </div>
+  `).join('');
+        }
+
+        function renderTimeline() {
+            const cont = document.getElementById('timeline');
+            cont.innerHTML = timelineData.map(t => `
+    <div class="timeline-item">
+      <div class="timeline-year">${t.year}</div>
+      <div class="timeline-text">${t.text}</div>
+    </div>
+  `).join('');
+        }
+
+        function renderGraph() {
+            const cont = document.getElementById('graphContainer');
+            const nodes = [
+                { id: 'root', label: '容错核心算法', x: 50, y: 50, size: 72, color: '#f43f5e' },
+                { id: 'n1', label: '表面码理论', x: 20, y: 25, size: 48, color: '#6366f1' },
+                { id: 'n2', label: '量子纠错', x: 75, y: 20, size: 52, color: '#8b5cf6' },
+                { id: 'n3', label: '阈值定理', x: 15, y: 65, size: 40, color: '#06b6d4' },
+                { id: 'n4', label: '解码器算法', x: 80, y: 70, size: 44, color: '#10b981' },
+                { id: 'n5', label: 'Shor码', x: 35, y: 85, size: 36, color: '#f59e0b' },
+                { id: 'n6', label: '拓扑量子', x: 70, y: 45, size: 42, color: '#ec4899' },
+            ];
+            const edges = [
+                ['root', 'n1'], ['root', 'n2'], ['root', 'n4'], ['n1', 'n3'], ['n2', 'n6'], ['n3', 'n5'], ['n4', 'n6'], ['n1', 'n2']
+            ];
+
+            edges.forEach(([from, to]) => {
+                const a = nodes.find(n => n.id === from), b = nodes.find(n => n.id === to);
+                const dx = b.x - a.x, dy = b.y - a.y;
+                const len = Math.sqrt(dx * dx + dy * dy) * 3.6;
+                const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+                const line = document.createElement('div');
+                line.className = 'graph-line';
+                line.style.cssText = `left:${a.x}%;top:${a.y}%;width:${len}px;transform:rotate(${angle}deg);background:linear-gradient(90deg,${a.color}44,${b.color}44)`;
+                cont.appendChild(line);
+            });
+
+            nodes.forEach(n => {
+                const el = document.createElement('div');
+                el.className = 'graph-node';
+                el.style.cssText = `left:calc(${n.x}% - ${n.size / 2}px);top:calc(${n.y}% - ${n.size / 2}px);width:${n.size}px;height:${n.size}px;background:${n.color}22;border:2px solid ${n.color};color:${n.color}`;
+                el.textContent = n.label.substring(0, 2);
+                el.title = n.label;
+                cont.appendChild(el);
+                const lbl = document.createElement('div');
+                lbl.className = 'graph-label';
+                lbl.style.cssText = `left:calc(${n.x}% - 40px);top:calc(${n.y}% + ${n.size / 2 + 4}px);width:80px`;
+                lbl.textContent = n.label;
+                cont.appendChild(lbl);
+            });
+        }
+
+        // Auto-trigger
+        window.addEventListener('load', () => { setTimeout(startScan, 500); });
+    </script>
+</body>
+
+</html>

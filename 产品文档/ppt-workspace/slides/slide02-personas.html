@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        html {
+            background: #ffffff;
+        }
+
+        body {
+            width: 720pt;
+            height: 405pt;
+            margin: 0;
+            padding: 0;
+            background: #0B1929;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            margin: 20pt 40pt 8pt 40pt;
+        }
+
+        .header h1 {
+            color: #ffffff;
+            font-size: 20pt;
+            margin: 0 0 3pt 0;
+        }
+
+        .header p {
+            color: #5DADE2;
+            font-size: 9pt;
+            margin: 0;
+        }
+
+        .line {
+            width: 50pt;
+            height: 2pt;
+            background: #17A2B8;
+            margin: 6pt 0 0 40pt;
+        }
+
+        .grid {
+            display: flex;
+            flex-wrap: wrap;
+            margin: 8pt 30pt;
+            gap: 8pt;
+        }
+
+        .card {
+            width: 156pt;
+            height: 82pt;
+            background: #132238;
+            border: 1pt solid rgba(23, 162, 184, 0.2);
+            border-radius: 6pt;
+            padding: 8pt 10pt;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-top {
+            display: flex;
+            align-items: center;
+            gap: 6pt;
+            margin-bottom: 4pt;
+        }
+
+        .emoji {
+            width: 22pt;
+            height: 22pt;
+            background: rgba(23, 162, 184, 0.15);
+            border-radius: 6pt;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .emoji p {
+            font-size: 10pt;
+            margin: 0;
+            color: #17A2B8;
+            font-weight: bold;
+        }
+
+        .card-name p {
+            color: #ffffff;
+            font-size: 9pt;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .card-role p {
+            color: #7F8C8D;
+            font-size: 6.5pt;
+            margin: 0;
+        }
+
+        .card-pain p {
+            color: #E74C3C;
+            font-size: 6pt;
+            margin: 0;
+            line-height: 1.3;
+        }
+
+        .card-sys p {
+            color: #17A2B8;
+            font-size: 5.5pt;
+            margin: 3pt 0 0 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>八大典型用户画像</h1>
+        <p>覆盖政府决策者、科研人员、分析师、管理者、运营者、数据管理员、研究生</p>
+    </div>
+    <div class="line"></div>
+    <div class="grid">
+        <div class="card">
+            <div class="card-top">
+                <div class="emoji">
+                    <p>U1</p>
+                </div>
+                <div>
+                    <div class="card-name">
+                        <p>张局长</p>
+                    </div>
+                    <div class="card-role">
+                        <p>科技局领导 | 48岁 | 博士</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-pain">
+                <p>每次决策凭经验+开会，缺少全局数据支撑</p>
+            </div>
+            <div class="card-sys">
+                <p>涉及5系统：门户/展示/智库/决策/情报</p>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-top">
+                <div class="emoji">
+                    <p>U2</p>
+                </div>
+                <div>
+                    <div class="card-name">
+                        <p>李研究员</p>
+                    </div>
+                    <div class="card-role">
+                        <p>情报分析师 | 35岁 | 硕士</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-pain">
+                <p>报告要在5个平台查数据，手动整合占80%时间</p>
+            </div>
+            <div class="card-sys">
+                <p>涉及6系统：专题/搜索/算法/图谱/情报/大数据</p>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-top">
+                <div class="emoji">
+                    <p>U3</p>
+                </div>
+                <div>
+                    <div class="card-name">
+                        <p>周处长</p>
+                    </div>
+                    <div class="card-role">
+                        <p>计划管理者 | 42岁 | 硕士</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-pain">
+                <p>批了项目产出了什么？每笔钱值不值？说不清</p>
+            </div>
+            <div class="card-sys">
+                <p>涉及3系统：展示/资源服务/决策支持</p>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-top">
+                <div class="emoji">
+                    <p>U4</p>
+                </div>
+                <div>
+                    <div class="card-name">
+                        <p>王教授</p>
+                    </div>
+                    <div class="card-role">
+                        <p>高校科研 | 38岁 | 海归博后</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-pain">
+                <p>每天花3小时搜论文，做研究的时间不够</p>
+            </div>
+            <div class="card-sys">
+                <p>涉及6系统：门户/搜索/科研智能/智算/图谱/情报</p>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-top">
+                <div class="emoji">
+                    <p>U5</p>
+                </div>
+                <div>
+                    <div class="card-name">
+                        <p>陈博士</p>
+                    </div>
+                    <div class="card-role">
+                        <p>产业研究员 | 32岁 | 博士</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-pain">
+                <p>论文专利企业政策分属不同系统，无法交叉</p>
+            </div>
+            <div class="card-sys">
+                <p>涉及5系统：资源/智库/专题/图谱/情报</p>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-top">
+                <div class="emoji">
+                    <p>U6</p>
+                </div>
+                <div>
+                    <div class="card-name">
+                        <p>孙主管</p>
+                    </div>
+                    <div class="card-role">
+                        <p>活动运营 | 30岁 | 硕士</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-pain">
+                <p>报名/直播/分析分散三个平台，管理碎片化</p>
+            </div>
+            <div class="card-sys">
+                <p>涉及1系统：科技信息交流</p>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-top">
+                <div class="emoji">
+                    <p>U7</p>
+                </div>
+                <div>
+                    <div class="card-name">
+                        <p>刘老师</p>
+                    </div>
+                    <div class="card-role">
+                        <p>数据管理员 | 33岁 | 硕士</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-pain">
+                <p>50家医院数据格式不一样，标准化要几个月</p>
+            </div>
+            <div class="card-sys">
+                <p>涉及4系统：算法/指数/大数据/科学数据</p>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-top">
+                <div class="emoji">
+                    <p>U8</p>
+                </div>
+                <div>
+                    <div class="card-name">
+                        <p>赵同学</p>
+                    </div>
+                    <div class="card-role">
+                        <p>博士研究生 | 26岁 | NLP</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-pain">
+                <p>复现论文花一周配环境，最后还跑不通</p>
+            </div>
+            <div class="card-sys">
+                <p>涉及4系统：门户/交流/搜索/科研智能</p>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
