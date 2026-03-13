@@ -25,3 +25,11 @@ Thumbs.db
 node_modules/
 dist/
 build/
+
+# Do not upload to GitHub (Bidding Documents & Full System Source)
+intelligence-mining-system/
+产品文档/
+项目文档/
+/tmp/
+*.docx
+*.xlsx
